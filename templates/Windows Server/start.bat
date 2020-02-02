@@ -1,0 +1,1 @@
+wolfDED.exe +exec deathmatch.cfg

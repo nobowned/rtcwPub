@@ -1,0 +1,6 @@
+1. Build "Release Dedicated" build configuration in Visual Studio (Follow HOWTO Build Windows.txt for more info on building).
+2. That should create a WolfDED.exe and a qagame_mp_x86.dll that will both automatically copy into "templates\Windows Server" and "templates\Windows Server\main" respectively.
+3. Copy mp_pak0.pk3, mp_pak1.pk3, and mp_pak2.pk3 from your RTCW install into "templates\Windows Server\main".
+4. Double click "templates\Windows Server\start.bat".
+
+You can now copy the "templates\Windows Server" folder wherever you desire to run your server.

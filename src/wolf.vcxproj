@@ -239,8 +239,8 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy /Y "$(TargetDir)$(TargetName)$(TargetExt)" "$(TargetDir)..\..\templates\Windows Server\$(TargetName)$(TargetExt)"</Command>
+      <Message>Copies the wolf server executable to the Windows Server template</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Dedicated|Win32'">
