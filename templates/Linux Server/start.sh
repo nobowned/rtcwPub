@@ -1,1 +1,1 @@
-wolfded.x86 +exec server
+./wolfded.x86 +exec deathmatch.cfg
