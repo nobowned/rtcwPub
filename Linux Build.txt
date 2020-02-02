@@ -1,0 +1,13 @@
+Requires GCC and 32 bit libraries (Debian OS recommended).
+
+Navigate to: src/unix folder
+type: make server
+wolfded.x86 should be created in src/unix folder
+
+Navigate to: src/game folder
+type: make
+qagame.mp.i386.so should be created in src/game folder
+
+
+
+The client isn't buildable in Linux, unless you make it buildable.. but good luck!
