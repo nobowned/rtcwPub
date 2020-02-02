@@ -3,3 +3,6 @@ Requires Visual Studio.
 Open src/wolf.sln
 The "Release Dedicated" configuration is to build rtcwPub server only. "Release" is to build the Wolf SE client.
 Once a build config is chosen, then open the Build menu at the top and choose "Build Solution".
+
+Tutorial that you probably shouldn't waste your time watching can be found here:
+https://www.youtube.com/watch?v=cNg2bmSyc8w&t=1s
