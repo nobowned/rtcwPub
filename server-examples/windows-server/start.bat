@@ -1,1 +1,1 @@
-wolfDED.exe +exec deathmatch.cfg
+WolfDED.exe +exec deathmatch.cfg

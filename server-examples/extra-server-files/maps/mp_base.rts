@@ -1,0 +1,36 @@
+// team;  0 = Both/None, 1 = Red, 2 = Blue.
+// type;  0 = Starting, 1 = Primary, 2 = Ending (camp)
+
+// Axis routes. Should go Starting -> Primary -> Ending
+{
+	path { 2592 2171 24, 2349 1894 24, 941 47 32 }
+	team 1
+	type 0
+}
+{
+	path { 350 -504 56, -457 -865 56 }
+	team 1
+	type 1
+}
+{
+	path { -1736 -980 56, -2042 -530 56, -2497 -1023 56 }
+	team 1
+	type 2
+}
+
+// Allies routes. Should go Starting -> Primary -> Ending
+{
+	path { -2430 -1392 56, -1207 -1354 56 }
+	team 2
+	type 0
+}
+{
+	path { 350 -504 56, 970 386 32  }
+	team 2
+	type 1
+}
+{
+	path { 2386 1896 24, 2652 2277 24, 2878 2494 24 }
+	team 2
+	type 2
+}
