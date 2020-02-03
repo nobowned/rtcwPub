@@ -1,5 +1,5 @@
 The folders and files here are "extra" server files. These are files that aren't required to start and run a server, but may enhance the quality (slightly) of your server, if they apply.
-In order for any of these folders to be used, they has to be placed in the same folder as your server executable (wolfded.x86, WolfDED.exe).
+In order for any of these folders to be used, they have to be placed in the same folder as your server executable (wolfded.x86, WolfDED.exe).
 
 botfiles: Files for running q3 bots in wolf dm. Most, if not all, of the files are settings and characteristics for the bots. They define how the bots act.
 
