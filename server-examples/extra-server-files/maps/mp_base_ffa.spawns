@@ -1,0 +1,219 @@
+// weapon spawn start
+{
+"classname" "weapon_sten"
+"origin" "-171 -857 58"
+"count" "64"
+}
+{
+"classname" "weapon_magicammo"
+"origin" "252 -976 200"
+"count" "64"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-168 -672 320"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-898 -902 359"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-2141 481 122"
+"count" "1"
+}
+{
+"classname" "weapon_venom"
+"origin" "-1783 1859 37"
+"count" "150"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-2236 2263 40"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-1086 1781 24"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-450 1775 24"
+"count" "64"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "1393 3088 367"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "610 1982 352"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "1471 1406 345"
+"count" "64"
+}
+{
+"classname" "weapon_magicammo"
+"origin" "1837 932 360"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "1371 337 346"
+"count" "1"
+}
+{
+"classname" "weapon_mp40"
+"origin" "900 -54 345"
+"count" "64"
+}
+{
+"classname" "item_health"
+"origin" "401 -595 331"
+"count" "50"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-511 -542 96"
+"count" "1"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-2534 -994 74"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-1656 -1497 56"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "373 -517 56"
+"count" "64"
+}
+{
+"classname" "weapon_binoculars" // sswolf - not sure for the definition here, make sure to have that settled
+"origin" "1061 626 51"
+"count" "1"
+}
+{
+"classname" "weapon_thompson"
+"origin" "768 799 168"
+"count" "64"
+}
+{
+"classname" "weapon_panzerfaust"
+"origin" "2026 2678 24"
+"count" "1"
+}
+
+// spawns start
+
+{
+"classname" "info_player_deathmatch"
+"origin" "-2181 -1537 349"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-388 -618 66"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-967 -1242 408"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-539 -715 329"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "1174 -159 413"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "432 195 344"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "1469 1984 351"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-2628 -560 243"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-2690 -1372 246"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-2383 2379 123"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-2327 2352 256"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-1753 1477 137"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-769 2189 53"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "1546 2990 106"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "2434 2436 30"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "3001 2311 107"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "2458 1564 28"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "112 2695 349"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-1797 -251 69"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "1022 -133 59"
+"spawnflags" "4"
+}

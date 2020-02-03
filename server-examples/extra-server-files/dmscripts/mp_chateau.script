@@ -1,0 +1,247 @@
+//
+//Brush Scripting
+//Map: DEATHMATCH mp_chateau
+//Last edited by: Agent
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription			"The Axis have taken over a Chateau and are using it as a base of operations. Deep within the library of the Chateau are secret documents. The Allies need to steal those documents and transmit them as soon as possible!"
+		wm_axis_respawntime		30
+		wm_allied_respawntime		30
+
+		wm_set_round_timelimit		15
+
+		wm_number_of_objectives		4
+
+		// Set objective #1 properties
+
+		// Nazi's control objective #1 at the start:  0 == AXIS, 1 == ALLIED
+		wm_set_objective_status		1	0 // The door and cellar
+		wm_objective_axis_desc		1	"Primary Objective:**Defend the Chateau."
+		wm_objective_allied_desc	1	"Primary Objective:**Break into the Chateau."
+
+		wm_set_objective_status		2	0 // The Documents
+		wm_objective_axis_desc		2	"Primary Objective:**Prevent Allies from stealing top secret war documents."
+		wm_objective_allied_desc	2	"Primary Objective:**Steal the top secret Axis war documents."
+
+		wm_set_objective_status		3	-1 // The transmitter trigger
+		wm_objective_axis_desc		3	"Primary Objective:**Do not let the Allies transmit the Top Secret Documents!"
+		wm_objective_allied_desc	3	"Primary Objective:**Transmit the Top Secret Documents!"
+
+		wm_set_objective_status		4	-1 // Respawn Flag
+		wm_objective_axis_desc		4 	"Secondary Objective:**Do not let the Allies capture the Grand Staircase."
+		wm_objective_allied_desc	4	"Secondary Objective:**Capture the Grand Staircase for Forward Deployment!"
+
+		wm_objective_short_axis_desc	1	"Defend the Chateau"
+		wm_objective_short_axis_desc	2	"Defend the Top Secret Documents"
+		wm_objective_short_axis_desc	3	"Stop the Allies from transmitting"
+		wm_objective_short_axis_desc	4	"Hold the Grand Staircase"
+
+		wm_objective_short_allied_desc	1	"Break into the Chateau"
+		wm_objective_short_allied_desc	2	"Steal the Top Secret Documents"
+		wm_objective_short_allied_desc	3	"Transmit the Top Secret Documents"
+		wm_objective_short_allied_desc	4	"Capture the Grand Staircase"
+
+		// Videos and Shots
+
+		//wm_objective_image			1	"gfx/2d/mp_objectives/ice_obj_1.tga"
+		//wm_objective_image			2	"gfx/2d/mp_objectives/ice_obj_2.tga"
+		//wm_objective_image			3	"gfx/2d/mp_objectives/ice_obj_3.tga"
+		//wm_objective_image			4	"gfx/2d/mp_objectives/checkpoint_obj.tga"
+
+		//wm_overview_image			"levelshots/mp_ice.tga"
+
+		// If the round timer expires, the Nazis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// Accum #1 will be the state of objective number one
+		// Accum #2 will be the state of objective number two
+		accum 1 set 0
+	}
+
+	trigger objective1
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		1	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies have gained entry into the Chateau."
+	}
+
+	trigger objective2
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #3
+		wm_set_objective_status		3	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies have transmitted the Top Secret Documents!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame
+	}
+
+	trigger checkgame
+	{
+		accum 1 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// End the round
+		wm_endround
+	}
+
+	trigger axis_object_stolen
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied have stolen the SoD (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	1
+	}
+
+	trigger axis_object_returned
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis have returned the SoD (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	0
+	}
+
+	// Respawn Flag Info
+
+	trigger chateau_flagblue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of checkpoint #1
+		wm_set_objective_status		4	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies capture the Grand Staircase!"
+	}
+
+	trigger chateau_flagred
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes control of checkpoint #1
+		wm_set_objective_status		4	0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis reclaims the Grand Staircase!"
+	}
+}
+
+flag_respawn_obj	// Spawn Flag
+{
+	spawn
+	{
+		remove
+	}
+}
+
+flag_respawn_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+allied_trigger01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+Main_Door //The Chateau Doors
+{
+	spawn
+	{
+		remove
+	}
+}
+
+Cellar_Door //The Chateau Doors
+{
+	spawn
+	{
+		remove
+	}
+}
+
+secret_bookcase // Hidden Bookcase
+{
+	spawn
+	{
+		trigger secret_bookcase setup
+	}
+
+	trigger setup
+	{
+		faceangles 0 -60 0 1000
+	}
+
+	death
+	{
+	}
+}
+
+// OBJ to REMOVE
+
+checkpoint01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint02
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint03
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint01_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint02_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint03_base
+{
+	spawn
+	{
+		remove
+	}
+}
