@@ -1,0 +1,327 @@
+//
+//Brush Scripting
+//Map: mp_base
+//Last edited by: Nobo
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+		wm_mapdescription		"Team Deathmatch"
+		wm_axis_respawntime		30
+		wm_allied_respawntime		20
+		wm_number_of_objectives		0
+		wm_set_round_timelimit		0
+		wm_overview_image		"video/mp_base.roq"
+
+	}
+}
+
+radar_obj1 //the north radar structure
+{
+	spawn
+	{
+		remove
+	}
+}
+
+radar_obj2 //the south radar structure
+{
+	spawn
+	{
+		remove
+	}
+}
+
+north_radar
+{
+	spawn
+	{
+		playsound sound/multiplayer/radar_loop02.wav looping
+		trigger north_radar rotateloop
+	}
+
+	trigger rotateloop
+	{
+		faceangles 0 -90 0 3000
+		faceangles 0 -180 0 3000
+		faceangles 0 -270 0 3000
+		faceangles 0 -360 0 3000
+		trigger north_radar rotateloop
+	}
+
+	trigger destroyed
+	{
+		stopsound
+		halt
+	}
+
+	death
+	{
+	}
+}
+
+south_radar
+{
+	spawn
+	{
+		playsound sound/multiplayer/radar_loop02.wav looping
+		trigger south_radar rotateloop
+	}
+
+	trigger rotateloop
+	{
+		faceangles 0 -90 0 3000
+		faceangles 0 -180 0 3000
+		faceangles 0 -270 0 3000
+		faceangles 0 -360 0 3000
+		trigger south_radar rotateloop
+	}
+
+	trigger destroyed
+	{
+		stopsound
+		halt
+	}
+
+	death
+	{
+	}
+}
+
+checkpoint01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint02
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint03
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint04
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint1_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint2_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint3_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint4_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+north_radar_remove
+{
+	spawn
+	{
+		remove
+	}
+}
+
+south_radar_remove
+{
+	spawn
+	{
+		remove
+	}
+}
+
+axis_two01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+allied_two01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+radar_pieces
+{
+	spawn
+	{
+		remove
+	}
+}
+
+cp_clipremove01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+// LEVER STUFF
+
+base_lever1
+{
+	spawn
+	{
+	}
+
+	trigger down
+	{
+		gotomarker gate_lever1_downpos 16
+		trigger base_gate1 open
+	}
+
+	trigger up
+	{
+		gotomarker gate_lever1_uppos 16
+		trigger base_gate1 close
+	}
+}
+
+base_lever2
+{
+	spawn
+	{
+	}
+
+	trigger down
+	{
+		gotomarker gate_lever2_downpos 16
+	}
+
+	trigger up
+	{
+		gotomarker gate_lever2_uppos 16
+	}
+}
+
+base_gate1_trigger1
+{
+	spawn
+	{
+		accum 5 set 1
+	}
+
+	trigger base_lever1up
+	{
+		accum 5 abort_if_not_equal 1
+		trigger base_lever1 up
+		trigger base_lever2 up
+		accum 5 set 0
+		wait 4000
+		trigger base_gate1_trigger2 setaccum0
+	}
+
+	trigger setaccum0
+	{
+		accum 5 set 0
+	}
+
+	trigger setaccum1
+	{
+		accum 5 set 1
+	}
+}
+
+base_gate1_trigger2
+{
+	spawn
+	{
+		accum 5 set 1
+	}
+
+	trigger base_lever1down
+	{
+		accum 5 abort_if_not_equal 0
+		trigger base_lever1 down
+		trigger base_lever2 down
+		accum 5 set 1
+		wait 4000
+		trigger base_gate1_trigger1 setaccum1
+	}
+
+	trigger setaccum0
+	{
+		accum 5 set 0
+	}
+
+	trigger setaccum1
+	{
+		accum 5 set 1
+	}
+}
+
+base_gate1
+{
+	spawn
+	{
+	}
+
+	trigger open
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker gate_pos1 32 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+
+	trigger close
+	{
+		wait 500
+		playsound sound/scenaric/assault/big_gate1.wav
+		wait 400
+		playsound sound/scenaric/assault/big_gate2.wav looping forever
+		gotomarker gate_pos2 32 wait
+		stopsound
+		playsound sound/scenaric/assault/big_gate3.wav
+	}
+}

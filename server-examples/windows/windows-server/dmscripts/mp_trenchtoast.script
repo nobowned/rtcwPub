@@ -1,0 +1,577 @@
+//
+//Brush Scripting
+//Map: DEATHMATCH mp_trenchtoast
+//Last edited by: Agent
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription			"Checkpoint: Secure the Area."
+
+		// time until reinforcements in seconds
+
+		wm_axis_respawntime		30
+		wm_allied_respawntime		30
+
+		wm_number_of_objectives		6
+
+		// Set time until round ends in minutes
+
+		wm_set_round_timelimit		15
+
+		// Set objective #1 properties
+
+		// Nazi's Checkpoint objective #1 at the start
+		wm_set_objective_status		1	-1
+		wm_objective_axis_desc		1	"Southern Flag"
+		wm_objective_allied_desc	1	"Southern Flag"
+
+		wm_set_objective_status		2	-1
+		wm_objective_axis_desc		2	"Southwest Flag"
+		wm_objective_allied_desc	2	"Southwest Flag"
+
+		wm_set_objective_status		3	-1
+		wm_objective_axis_desc		3	"South Clearing Flag"
+		wm_objective_allied_desc	3	"South Clearing Flag"
+
+		wm_set_objective_status		4	-1
+		wm_objective_axis_desc		4	"North Clearing Flag"
+		wm_objective_allied_desc	4	"North Clearing Flag"
+
+		wm_set_objective_status		5	-1
+		wm_objective_axis_desc		5	"Northeast Flag"
+		wm_objective_allied_desc	5	"Northeast Flag"
+
+		wm_set_objective_status		6	-1
+		wm_objective_axis_desc		6	"Northern Flag"
+		wm_objective_allied_desc	6	"Northern Flag"
+
+		wm_objective_short_axis_desc	1	"Southern Flag"
+		wm_objective_short_axis_desc	2	"Southwest Flag"
+		wm_objective_short_axis_desc	3	"South Clearing Flag"
+		wm_objective_short_axis_desc	4	"North Clearing Flag"
+		wm_objective_short_axis_desc	5	"Northeast Flag"
+		wm_objective_short_axis_desc	6	"Northern Flag"
+
+		wm_objective_short_allied_desc	1	"Southern Flag"
+		wm_objective_short_allied_desc	2	"Southwest Flag"
+		wm_objective_short_allied_desc	3	"South Clearing Flag"
+		wm_objective_short_allied_desc	4	"North Clearing Flag"
+		wm_objective_short_allied_desc	5	"Northeast Flag"
+		wm_objective_short_allied_desc	6	"Northern Flag"
+
+		wm_overview_image			"video/capturemaps.roq"
+
+		wm_objective_image			1	"gfx/2d/mp_objectives/Checkpoint_obj.tga"
+		wm_objective_image			2	"gfx/2d/mp_objectives/Checkpoint_obj.tga"
+		wm_objective_image			3	"gfx/2d/mp_objectives/Checkpoint_obj.tga"
+		wm_objective_image			4	"gfx/2d/mp_objectives/Checkpoint_obj.tga"
+		wm_objective_image			5	"gfx/2d/mp_objectives/Checkpoint_obj.tga"
+		wm_objective_image			6	"gfx/2d/mp_objectives/Checkpoint_obj.tga"
+
+		// If the round timer expires, nobody wins
+		// Set the round winner:  0 == AXIS, 1 == ALLIED, -1 == Noone
+		wm_setwinner -1
+
+		// Accum 1-4 will be the state of the Checkpoints, -1 means nobody Checkpoints the flag
+		accum 1 set -1
+		accum 2 set -1
+		accum 3 set -1
+		accum 4 set -1
+		accum 5 set -1
+		accum 6 set -1
+
+		// Accum 7 tracks the tide of battle
+		accum 7 set 0
+	}
+
+	// The following functions are called from the Checkpoints when either team takes Checkpoint of it
+
+	trigger cp1_blue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes Checkpoint of Checkpoint #1
+		wm_set_objective_status		2	1
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp1_blue
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies take the Southwest Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_blue
+	}
+
+	trigger cp1_red
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes Checkpoint of Checkpoint #1
+		wm_set_objective_status		2	0
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp1_red
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis takes the Southwest Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_red
+	}
+
+	trigger cp2_blue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes Checkpoint of Checkpoint #1
+		wm_set_objective_status		1	1
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp2_blue
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 2 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies take the Southern Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_blue
+	}
+
+	trigger cp2_red
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes Checkpoint of Checkpoint #2
+		wm_set_objective_status		1	0
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp2_red
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 2 set 0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis takes the Southern Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_red
+	}
+
+	trigger cp3_blue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes Checkpoint of Checkpoint #3
+		wm_set_objective_status		3	1
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp3_blue
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 3 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies take the South Clearing Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_blue
+	}
+
+	trigger cp3_red
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes Checkpoint of Checkpoint #3
+		wm_set_objective_status		3	0
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp3_red
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 3 set 0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis takes the South Clearing Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_red
+	}
+
+	trigger cp4_blue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes Checkpoint of Checkpoint #4
+		wm_set_objective_status		4	1
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp4_blue
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 4 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies take the North Clearing Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_blue
+	}
+
+	trigger cp4_red
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes Checkpoint of Checkpoint #4
+		wm_set_objective_status		4	0
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp4_red
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 4 set 0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis takes the North Clearing Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_red
+	}
+
+	trigger cp5_blue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes Checkpoint of Checkpoint #5
+		wm_set_objective_status		6	1
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp5_blue
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 5 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies take the Northern Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_blue
+	}
+
+	trigger cp5_red
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes Checkpoint of Checkpoint #5
+		wm_set_objective_status		6	0
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp5_red
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 5 set 0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis takes the Northern Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_red
+	}
+
+	trigger cp6_blue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes Checkpoint of Checkpoint #6
+		wm_set_objective_status		5	1
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp6_blue
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 6 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies take the Northeast Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_blue
+	}
+
+	trigger cp6_red
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes Checkpoint of Checkpoint #6
+		wm_set_objective_status		5	0
+
+		// First update winner based on number of flags held by both teams
+		trigger game_manager adjustwinner_cp6_red
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 6 set 0
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis takes the Northeast Flag!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame_red
+	}
+
+	// Keep winner set to team with most flags
+
+	trigger checkwinner
+	{
+		wm_setwinner -1
+		accum 7 abort_if_equal 0
+		wm_setwinner 1
+		accum 7 abort_if_greater_than 0
+		wm_setwinner 0
+	}
+
+	trigger adjustwinner_cp1_blue
+	{
+		accum 7 inc 1
+		trigger game_manager checkwinner
+		accum 1 abort_if_not_equal 0
+		accum 7 inc 1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp1_red
+	{
+		accum 7 inc -1
+		trigger game_manager checkwinner
+		accum 1 abort_if_not_equal 1
+		accum 7 inc -1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp2_blue
+	{
+		accum 7 inc 1
+		trigger game_manager checkwinner
+		accum 2 abort_if_not_equal 0
+		accum 7 inc 1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp2_red
+	{
+		accum 7 inc -1
+		trigger game_manager checkwinner
+		accum 2 abort_if_not_equal 1
+		accum 7 inc -1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp3_blue
+	{
+		accum 7 inc 1
+		trigger game_manager checkwinner
+		accum 3 abort_if_not_equal 0
+		accum 7 inc 1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp3_red
+	{
+		accum 7 inc -1
+		trigger game_manager checkwinner
+		accum 3 abort_if_not_equal 1
+		accum 7 inc -1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp4_blue
+	{
+		accum 7 inc 1
+		trigger game_manager checkwinner
+		accum 4 abort_if_not_equal 0
+		accum 7 inc 1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp4_red
+	{
+		accum 7 inc -1
+		trigger game_manager checkwinner
+		accum 4 abort_if_not_equal 1
+		accum 7 inc -1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp5_blue
+	{
+		accum 7 inc 1
+		trigger game_manager checkwinner
+		accum 4 abort_if_not_equal 0
+		accum 7 inc 1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp5_red
+	{
+		accum 7 inc -1
+		trigger game_manager checkwinner
+		accum 4 abort_if_not_equal 1
+		accum 7 inc -1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp6_blue
+	{
+		accum 7 inc 1
+		trigger game_manager checkwinner
+		accum 4 abort_if_not_equal 0
+		accum 7 inc 1
+		trigger game_manager checkwinner
+	}
+
+	trigger adjustwinner_cp6_red
+	{
+		accum 7 inc -1
+		trigger game_manager checkwinner
+		accum 4 abort_if_not_equal 1
+		accum 7 inc -1
+		trigger game_manager checkwinner
+	}
+
+	trigger checkgame_blue
+	{
+		// Check all for Checkpoints and see if they have been set to '1' - allied
+		accum 1 abort_if_not_equal 1
+		accum 2 abort_if_not_equal 1
+		accum 3 abort_if_not_equal 1
+		accum 4 abort_if_not_equal 1
+		accum 5 abort_if_not_equal 1
+		accum 6 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// End the round
+		wm_endround
+	}
+
+	trigger checkgame_red
+	{
+		// Check all for Checkpoints and see if they have been set to '0' - axis
+		accum 1 abort_if_not_equal 0
+		accum 2 abort_if_not_equal 0
+		accum 3 abort_if_not_equal 0
+		accum 4 abort_if_not_equal 0
+		accum 5 abort_if_not_equal 0
+		accum 6 abort_if_not_equal 0
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// End the round
+		wm_endround
+	}
+}
+
+Checkpoint1
+{
+	spawn
+	{
+		remove
+	}
+}
+Checkpoint2
+{
+	spawn
+	{
+		remove
+	}
+}
+
+Checkpoint3
+{
+	spawn
+	{
+		remove
+	}
+}
+
+Checkpoint4
+{
+	spawn
+	{
+		remove
+	}
+}
+Checkpoint5
+{
+	spawn
+	{
+		remove
+	}
+}
+Checkpoint6
+{
+	spawn
+	{
+		remove
+	}
+}
+
+// Dish Objects
+
+dish_obj1
+{
+	spawn
+	{
+		playsound sound/multiplayer/radar_loop02.wav looping
+		trigger dish_obj1 rotateloop
+	}
+
+	trigger rotateloop
+	{
+		faceangles 0 -90 0 3000
+		faceangles 0 -180 0 3000
+		faceangles 0 -270 0 3000
+		faceangles 0 -360 0 3000
+		trigger dish_obj1 rotateloop
+	}
+
+	trigger destroyed
+	{
+		stopsound
+		halt
+	}
+
+	death
+	{
+	}
+}
+
+dish_obj2
+{
+	spawn
+	{
+		playsound sound/multiplayer/radar_loop02.wav looping
+		trigger dish_obj2 rotateloop
+	}
+
+	trigger rotateloop
+	{
+		faceangles 0 -90 0 3000
+		faceangles 0 -180 0 3000
+		faceangles 0 -270 0 3000
+		faceangles 0 -360 0 3000
+		trigger dish_obj2 rotateloop
+	}
+
+	trigger destroyed
+	{
+		stopsound
+		halt
+	}
+
+	death
+	{
+	}
+}

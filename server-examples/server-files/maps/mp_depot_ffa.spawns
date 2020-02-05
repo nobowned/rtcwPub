@@ -1,0 +1,390 @@
+// spawns start
+
+{
+"classname" "info_player_deathmatch"
+"origin" "-12922 6125 20"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-12523 5838 912"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-11459 5306 23"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-12135 5426 -269"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-11460 5826 -261"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-9978 3635 -254"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8934 4571 -180"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-10247 4485 -267"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8794 3477 -252"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-10110 3007 -244"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-7982 2845 -227"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8664 3664 101"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8051 4016 322"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-7283 3439 70"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-6593 4081 -271"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8056 4120 -267"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-5291 1663 -211"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-5330 1268 57"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-7675 2111 -216"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-7661 1173 -208"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8631 1938 -354"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8023 2200 -214"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-8544 2447 -214"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-9100 1389 -222"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-9451 1380 -208"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-10322 2477 -206"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-9654 1904 63"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-9889 1691 -790"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-12320 6045 -720"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-12916 6131 -264"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-11853 3297 -254"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-12145 5302 627"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-11944 4148 446"
+"spawnflags" "4"
+}
+{
+"classname" "info_player_deathmatch"
+"origin" "-12453 4194 -243"
+"spawnflags" "4"
+}
+
+// weapon spawn start
+
+{
+"classname" "weapon_thompson"
+"origin" "-12590 3844 -264"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-9615 4160 -271"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-12786 4813 -22"
+"count" "1"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-11821 4245 451"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-11800 5631 -249"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-11803 5814 26"
+"count" "1"
+}
+{
+"classname" "weapon_sten"
+"origin" "-12102 4953 12"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-13292 5691 635"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-11745 6030 654"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-12262 5838 440"
+"count" "1"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-12533 6104 299"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-12533 6108 53"
+"count" "1"
+}
+{
+"classname" "weapon_panzerfaust"
+"origin" "-11175 4329 -210"
+"count" "1"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-12323 4864 -248"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-11031 3317 -226"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-9965 2247 -195"
+"count" "64"
+}
+{
+"classname" "weapon_magicammo"
+"origin" "-10231 3576 123"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-10303 3592 -695"
+"count" "64"
+}
+{
+"classname" "item_health"
+"origin" "-10507 3526 -712"
+"count" "50"
+}
+{
+"classname" "weapon_flamethrower"
+"origin" "-11712 3839 -689"
+"count" "100"
+}
+{
+"classname" "weapon_magicammo"
+"origin" "-12376 5469 -713"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-12161 4201 -525"
+"count" "64"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-10299 2673 -711"
+"count" "64"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-7520 3884 350"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-8632 3008 129"
+"count" "64"
+}
+{
+"classname" "weapon_magicammo"
+"origin" "-8035 3171 -209"
+"count" "64"
+}
+{
+"classname" "item_health"
+"origin" "-8028 3229 -213"
+"count" "50"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-8351 3202 -208"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-9147 3205 -214"
+"count" "1"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-9369 3507 -240"
+"count" "64"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-8615 2813 -220"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-8213 2225 -171"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-9327 1660 -203"
+"count" "1"
+}
+{
+"classname" "weapon_mauserRifle"
+"origin" "-8354 1603 -304"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-7773 1632 -189"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-7049 2864 -214"
+"count" "64"
+}
+{
+"classname" "weapon_mp40"
+"origin" "-6848 4079 110"
+"count" "64"
+}
+{
+"classname" "weapon_thompson"
+"origin" "-6591 3080 -210"
+"count" "64"
+}
+{
+"classname" "weapon_sten"
+"origin" "-6791 1782 -203"
+"count" "64"
+}
+{
+"classname" "weapon_grenadelauncher"
+"origin" "-5839 1991 -175"
+"count" "1"
+}
+{
+"classname" "item_health"
+"origin" "-7403 2151 -196"
+"count" "50"
+}
+{
+"classname" "item_health"
+"origin" "-9470 3010 -213"
+"count" "50"
+}
+{
+"classname" "item_health"
+"origin" "-11712 4928 399"
+"count" "50"
+}
