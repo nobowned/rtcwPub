@@ -148,3 +148,5 @@ App_Data/*.ldf
 *.spawns
 
 demos/
+windows-server/
+linux-server/
