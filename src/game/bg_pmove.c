@@ -1580,18 +1580,10 @@ PM_Footsteps
 */
 static void PM_Footsteps(void) {
 	float bobmove;
-	int			maxBobTime;
 	int			old;
 	qboolean	footstep;
 	qboolean	iswalking;
 	int			animResult = -1;
-
-	extern int trap_Cvar_VariableIntegerValue(const char *var_name);
-	static qboolean is_dedicated_server = -1;
-	
-	if (is_dedicated_server == -1) {
-		is_dedicated_server = trap_Cvar_VariableIntegerValue("dedicated");
-	}
 
 	bobmove = 0.0f;
 
@@ -1675,12 +1667,7 @@ static void PM_Footsteps(void) {
 	footstep = qfalse;
 
 	if (pm->ps->pm_flags & PMF_DUCKED) {
-		if (is_dedicated_server) {
-			maxBobTime = 504;
-		} 
-		else {
-			bobmove = 0.5;  // ducked characters bob much faster
-		}
+		bobmove = 0.5;  // ducked characters bob much faster
 		if (pm->ps->pm_flags & PMF_BACKWARDS_RUN) {
 			animResult = BG_AnimScriptAnimation(pm->ps, pm->ps->aiState, ANIM_MT_WALKCRBK, qtrue);
 		}
@@ -1691,12 +1678,7 @@ static void PM_Footsteps(void) {
 	}
 	else 	if (pm->ps->pm_flags & PMF_BACKWARDS_RUN) {
 		if (!(pm->cmd.buttons & BUTTON_WALKING)) {
-			if (is_dedicated_server) {
-				maxBobTime = 680;
-			}
-			else {
-				bobmove = 0.4;  // faster speeds bob faster
-			}
+			bobmove = 0.4;  // faster speeds bob faster
 			footstep = qtrue;
 			// check for strafing
 			if (pm->cmd.rightmove && !pm->cmd.forwardmove) {
@@ -1712,12 +1694,7 @@ static void PM_Footsteps(void) {
 			}
 		}
 		else {
-			if (is_dedicated_server) {
-				maxBobTime = 1016;
-			}
-			else {
-				bobmove = 0.3;
-			}
+			bobmove = 0.3;
 			// check for strafing
 			if (pm->cmd.rightmove && !pm->cmd.forwardmove) {
 				if (pm->cmd.rightmove > 0) {
@@ -1736,12 +1713,7 @@ static void PM_Footsteps(void) {
 	else {
 
 		if (!(pm->cmd.buttons & BUTTON_WALKING)) {
-			if (is_dedicated_server) {
-				maxBobTime = 680;
-			}
-			else {
-				bobmove = 0.4;
-			}
+			bobmove = 0.4;
 			footstep = qtrue;
 			// check for strafing
 			if (pm->cmd.rightmove && !pm->cmd.forwardmove) {
@@ -1757,12 +1729,7 @@ static void PM_Footsteps(void) {
 			}
 		}
 		else {
-			if (is_dedicated_server) {
-				maxBobTime = 1016;
-			}
-			else {
-				bobmove = 0.3;
-			}
+			bobmove = 0.3;
 			if (pm->ps->aiChar != AICHAR_NONE)
 			{
 				footstep = qtrue;
@@ -1787,19 +1754,9 @@ static void PM_Footsteps(void) {
 		animResult = BG_AnimScriptAnimation(pm->ps, pm->ps->aiState, ANIM_MT_IDLE, qtrue);
 	}
 
-	if (is_dedicated_server) {
-		pm->ps->bobTimer += pml.msec;
-		float bobScale = (float)pm->ps->bobTimer / (float)maxBobTime;
-
-		// check for footstep / splash sounds
-		old = pm->ps->bobCycle;
-		pm->ps->bobCycle = (int)(255 * bobScale) & 255;
-	} 
-	else {
-		// check for footstep / splash sounds
-		old = pm->ps->bobCycle;
-		pm->ps->bobCycle = (int)(old + bobmove * pml.msec) & 255;
-	}
+	// check for footstep / splash sounds
+	old = pm->ps->bobCycle;
+	pm->ps->bobCycle = (int)(old + bobmove * pml.msec) & 255;
 
 	// if we just crossed a cycle boundary, play an apropriate footstep event
 	if (iswalking)
