@@ -1513,8 +1513,8 @@ qboolean G_ScriptAction_SetRoundTimelimit( gentity_t *ent, char *params )
 		trap_Cvar_Set( "timelimit", va( "%f", nextTimeLimit ) );
 	}
 	else {
-		if (g_userTimeLimit.integer)
-			trap_Cvar_Set("timelimit", va("%i", g_userTimeLimit.integer));
+		if (g_userTimeLimit.integer || g_userTimeLimit.integer == -1)
+			trap_Cvar_Set("timelimit", va("%i", g_userTimeLimit.integer == -1 ? 0 : g_userTimeLimit.integer));
 		else
 			trap_Cvar_Set("timelimit", token);
 	}
