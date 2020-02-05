@@ -144,7 +144,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)..\..\Release\qagame_mp_x86.dll" "$(TargetDir)..\..\..\server-examples\windows-server\main\qagame_mp_x86.dll"</Command>
+      <Command>IF EXIST "$(TargetDir)..\..\..\server-examples\windows\windows-server\main" (copy /Y "$(TargetDir)..\..\Release\qagame_mp_x86.dll" "$(TargetDir)..\..\..\server-examples\windows\windows-server\main\qagame_mp_x86.dll")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

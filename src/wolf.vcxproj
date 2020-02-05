@@ -239,7 +239,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(TargetName)$(TargetExt)" "$(TargetDir)..\..\server-examples\windows-server\$(TargetName)$(TargetExt)"</Command>
+      <Command>IF EXIST "$(TargetDir)..\..\server-examples\windows\windows-server" (copy /Y "$(TargetDir)$(TargetName)$(TargetExt)" "$(TargetDir)..\..\server-examples\windows\windows-server\$(TargetName)$(TargetExt)")</Command>
       <Message>Copies the wolf server executable to the Windows Server template</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
