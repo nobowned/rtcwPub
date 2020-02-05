@@ -1020,7 +1020,7 @@ float	*tv( float x, float y, float z ) {
 */
 
 #define MAX_KEY_VALUE_ARRAY_LENGTH 64
-#define MAX_KEY_VALUE_LENGTH 64
+#define MAX_KEY_VALUE_LENGTH 256
 
 typedef struct userinfo_gather_result_t {
 	char keys[MAX_KEY_VALUE_ARRAY_LENGTH][MAX_KEY_VALUE_LENGTH];
