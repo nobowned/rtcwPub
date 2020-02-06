@@ -1,0 +1,12 @@
+1. Run the command: chmod 777 create-linux-server.sh
+2. Run the command: ./create-linux-server.sh
+3. Follow "HOWTO Build Linux.txt" to build the linux server.
+4. Verify that wolfded.x86 and qagame.mp.i386.so are created.
+5. Copy wolfded.x86 to "server-examples\linux-server".
+6. Copy qagame.mp.i386.so to "server-examples\linux-server\main".
+7. Copy mp_pak0.pk3, mp_pak1.pk3, and mp_pak2.pk3 from your RTCW install into "server-examples\linux-server\main".
+8. From command line, navigate to "server-examples\linux-server".
+9. Run the command: chmod 777 start.sh
+10. Run the command: ./start.sh
+
+You can now copy the "server-examples\linux-server" folder wherever you desire to run your server.
