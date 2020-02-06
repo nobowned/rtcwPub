@@ -27,12 +27,15 @@ the teleport bit is toggled)
 ============
 */
 void G_ResetTrail(gentity_t *ent) {
-	int		i, time;
+	int	i, time, time_increment, sv_fps;
+
+	sv_fps = trap_Cvar_VariableIntegerValue("sv_fps");
+	time_increment = sv_fps == 0 ? 50 : 1000 / sv_fps;
 
 	// fill up the origin trails with data (assume the current position
 	// for the last 1/2 second or so)
 	ent->client->trailHead = NUM_CLIENT_TRAILS - 1;
-	for (i = ent->client->trailHead, time = level.time; i >= 0; i--, time -= 50) {
+	for (i = ent->client->trailHead, time = level.time; i >= 0; i--, time -= time_increment) {
 		VectorCopy(ent->r.mins, ent->client->trail[i].mins);
 		VectorCopy(ent->r.maxs, ent->client->trail[i].maxs);
 		VectorCopy(ent->r.currentOrigin, ent->client->trail[i].currentOrigin);
@@ -51,10 +54,11 @@ Keep track of where the client's been (usually called every ClientThink)
 ============
 */
 void G_StoreTrail(gentity_t *ent) {
-	int		head, newtime;
+	int head, newtime;
 
-	if (!IS_ACTIVE(ent))
+	if (!IS_ACTIVE(ent)) {
 		return;
+	}
 
 	head = ent->client->trailHead;
 
@@ -76,9 +80,19 @@ void G_StoreTrail(gentity_t *ent) {
 		newtime = level.time;
 	}
 	else {
-		// calculate the actual server time
-		// (we set level.frameStartTime every G_RunFrame)
-		newtime = level.previousTime + trap_Milliseconds() - level.frameStartTime;
+		// level.frameStartTime is set to trap_Milliseconds() within G_RunFrame.
+		//
+		// we want to store where the server thinks the client is after receiving and processing
+		// one of their usercmd packets (move command). trap_Milliseconds() is used for a more granular timestamp,
+		// since level.time is only ever incremented every 50-ish milliseconds (depends on sv_fps).
+		// 
+		// if level.time were used then clients with high fps, high maxpackets, and high rate would have
+		// many trail records with duplicate timestamps.
+		int realTimeSinceFrameStartTime = trap_Milliseconds() - level.frameStartTime;
+		newtime = level.previousTime + realTimeSinceFrameStartTime;
+
+		// these checks are just clamping the time in-case it gets out of control.
+		// thehy should only ever really come into effect when the map first starts.
 		if (newtime > level.time) {
 			newtime = level.time;
 		}
@@ -96,22 +110,6 @@ void G_StoreTrail(gentity_t *ent) {
 	ent->client->trail[head].animInfo = ent->client->animationInfo;
 }
 
-/*
-=============
-TimeShiftLerp
-
-Used below to interpolate between two previous vectors
-Returns a vector "frac" times the distance between "start" and "end"
-=============
-*/
-static void TimeShiftLerp(float frac, vec3_t start, vec3_t end, vec3_t result) {
-	float	comp = 1.0f - frac;
-
-	result[0] = frac * start[0] + comp * end[0];
-	result[1] = frac * start[1] + comp * end[1];
-	result[2] = frac * start[2] + comp * end[2];
-}
-
 
 /*
 =================
@@ -121,18 +119,20 @@ Move a client back to where he was at the specified "time"
 =================
 */
 void G_TimeShiftClient(gentity_t *ent, int time) {
-	int		j, k;
+	int	j, k;
+	qboolean found_sandwich;
 
-	if (time > level.time) {
-		time = level.time;
-	}
-
-	// find two entries in the origin trail whose times sandwich "time"
-	// assumes no two adjacent trail records have the same timestamp
+	// find two trail records in the origin trail whose times sandwich "time".
+	// assumes no two adjacent trail records have the same timestamp.
+	//
+	// this code will check every trail record, even if the head starts at index 0.. it'll wrap around to 9 and decrease from there.
+	found_sandwich = qfalse;
 	j = k = ent->client->trailHead;
 	do {
-		if (ent->client->trail[j].time <= time)
+		if (ent->client->trail[j].time <= time) {
+			found_sandwich = j != k;
 			break;
+		}
 
 		k = j;
 		j--;
@@ -142,52 +142,29 @@ void G_TimeShiftClient(gentity_t *ent, int time) {
 	} while (j != ent->client->trailHead);
 
 	// if we got past the first iteration above, we've sandwiched (or wrapped)
-	if (j != k) {
-		// make sure it doesn't get re-saved
-		if (ent->client->saved.leveltime != level.time) {
-			// save the current origin and bounding box
-			VectorCopy(ent->r.mins, ent->client->saved.mins);
-			VectorCopy(ent->r.maxs, ent->client->saved.maxs);
-			VectorCopy(ent->r.currentOrigin, ent->client->saved.currentOrigin);
-			ent->client->saved.leveltime = level.time;
-			ent->client->saved.animInfo = ent->client->animationInfo;
-		}
+	if (found_sandwich) {
+		// save the current origin and bounding box
+		VectorCopy(ent->r.mins, ent->client->saved.mins);
+		VectorCopy(ent->r.maxs, ent->client->saved.maxs);
+		VectorCopy(ent->r.currentOrigin, ent->client->saved.currentOrigin);
+		ent->client->saved.leveltime = level.time;
+		ent->client->saved.animInfo = ent->client->animationInfo;
 
-		// if we haven't wrapped back to the head, we've sandwiched, so
-		// we shift the client's position back to where he was at "time"
-		if (j != ent->client->trailHead) {
-			float	frac = (float)(ent->client->trail[k].time - time) /
-				(float)(ent->client->trail[k].time - ent->client->trail[j].time);
-			
-			// interpolate between the two origins to give position at time index "time"
-			TimeShiftLerp(frac,
-				ent->client->trail[k].currentOrigin, ent->client->trail[j].currentOrigin,
-				ent->r.currentOrigin);
+		// shift the client's position back to the record that's nearest to "time"
+		float frac = (float)(time - ent->client->trail[j].time) / (float)(ent->client->trail[k].time - ent->client->trail[j].time);
+		int best_trail_index = frac < 0.5 ? j : k;
+		clientTrail_t* best_trail = ent->client->trail + best_trail_index;
 
-			// lerp these too, just for fun (and ducking)
-			TimeShiftLerp(frac,
-				ent->client->trail[k].mins, ent->client->trail[j].mins,
-				ent->r.mins);
+		// use the best trail's position in the world
+		VectorCopy(best_trail->currentOrigin, ent->r.currentOrigin);
+		// use the best trail's mins & maxs (crouching/standing)
+		VectorCopy(best_trail->mins, ent->r.mins);
+		VectorCopy(best_trail->maxs, ent->r.maxs);
+		// use the best trail's animation info (for head hitbox)
+		ent->client->animationInfo = best_trail->animInfo;
 
-			TimeShiftLerp(frac,
-				ent->client->trail[k].maxs, ent->client->trail[j].maxs,
-				ent->r.maxs);
-
-			ent->client->animationInfo = ent->client->trail[frac <= 0.5f ? k : j].animInfo;
-
-			// this will recalculate absmin and absmax
-			trap_LinkEntity(ent);
-		}
-		else {
-			// we wrapped, so grab the earliest
-			VectorCopy(ent->client->trail[k].currentOrigin, ent->r.currentOrigin);
-			VectorCopy(ent->client->trail[k].mins, ent->r.mins);
-			VectorCopy(ent->client->trail[k].maxs, ent->r.maxs);
-			ent->client->animationInfo = ent->client->trail[k].animInfo;
-
-			// this will recalculate absmin and absmax
-			trap_LinkEntity(ent);
-		}
+		// this will recalculate absmin and absmax
+		trap_LinkEntity(ent);
 	}
 }
 
@@ -205,7 +182,7 @@ void G_TimeShiftAllClients(int time, gentity_t *skip) {
 	gentity_t	*ent;
 
 	if (time > level.time) {
-		time = level.time;
+		return;
 	}
 
 	// for every client
