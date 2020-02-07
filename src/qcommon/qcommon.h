@@ -232,6 +232,13 @@ typedef struct {
 	int unsentFragmentStart;
 	int unsentLength;
 	byte unsentBuffer[MAX_MSGLEN];
+
+#if _DEBUG
+#define MAX_LATENCY_MESSAGES 256
+#define MASK_LATENCY_MESSAGES (MAX_LATENCY_MESSAGES - 1)
+	msg_t latency_snapshot_messages[MAX_LATENCY_MESSAGES];
+	int lsm_head, lsm_tail;
+#endif
 } netchan_t;
 
 void Netchan_Init( int qport );
@@ -788,6 +795,7 @@ void        Com_SetRecommended();
 extern cvar_t  *com_developer;
 extern cvar_t  *com_dedicated;
 extern cvar_t  *com_speeds;
+extern cvar_t  *com_latencysim;
 extern cvar_t  *com_timescale;
 extern cvar_t  *com_sv_running;
 extern cvar_t  *com_cl_running;

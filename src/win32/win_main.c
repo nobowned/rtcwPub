@@ -964,6 +964,30 @@ sysEvent_t eventQue[MAX_QUED_EVENTS];
 int eventHead, eventTail;
 byte sys_packetReceived[MAX_MSGLEN];
 
+#if _DEBUG
+sysEvent_t latency_packets_queue[MAX_QUED_EVENTS];
+int latency_packets_head, latency_packets_tail;
+
+void EnqueueLatencyPacketEvent(int packetLength, void* packetData, int latency) {
+	sysEvent_t* ev;
+
+	ev = &latency_packets_queue[latency_packets_head & MASK_QUED_EVENTS];
+	if (latency_packets_head - latency_packets_tail >= MAX_QUED_EVENTS) {
+		Com_Printf("EnqueueLatencyPacketEvent: overflow\n");
+		latency_packets_tail++;
+	}
+
+	latency_packets_head++;
+
+	ev->evTime = 0;
+	ev->evType = SE_PACKET;
+	ev->evValue = Sys_Milliseconds() + latency;
+	ev->evValue2 = 0;
+	ev->evPtrLength = packetLength;
+	ev->evPtr = packetData;
+}
+#endif
+
 /*
 ================
 Sys_QueEvent
@@ -1056,7 +1080,14 @@ sysEvent_t Sys_GetEvent( void ) {
 		buf = Z_Malloc( len );
 		*buf = adr;
 		memcpy( buf + 1, &netmsg.data[netmsg.readcount], netmsg.cursize - netmsg.readcount );
-		Sys_QueEvent( 0, SE_PACKET, 0, 0, len, buf );
+
+#if _DEBUG
+		if (com_latencysim->integer > 0) {
+			EnqueueLatencyPacketEvent(len, buf, com_latencysim->integer);
+		} 
+		else
+#endif
+		Sys_QueEvent(0, SE_PACKET, 0, 0, len, buf);
 	}
 
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
@@ -1076,6 +1107,19 @@ sysEvent_t Sys_GetEvent( void ) {
 		eventTail++;
 		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
 	}
+
+#if _DEBUG
+	if (com_latencysim->integer > 0) {
+		if (latency_packets_head > latency_packets_tail) {
+			sysEvent_t* latency_packet_event = &latency_packets_queue[latency_packets_tail & MASK_QUED_EVENTS];
+			if (latency_packet_event->evValue <= Sys_Milliseconds()) {
+				latency_packet_event->evTime = Sys_Milliseconds();
+				latency_packets_tail++;
+				return *latency_packet_event;
+			}
+		}
+	}
+#endif
 
 	// create an empty event to return
 
