@@ -62,9 +62,11 @@ void G_StoreTrail(gentity_t *ent) {
 
 	head = ent->client->trailHead;
 
-	// if we're on a new frame
+	// this code results in only one client trail being stored per server frame (every 50ms).
+	// and eventually that trail will have it's time snapped to a leveltime. this results
+	// in ~500 ms worth of trails into the past.
 	if (ent->client->trail[head].leveltime < level.time) {
-		// snap the last head up to the end of frame time
+		// we're on a new frame; snap the last head up to the end of frame time
 		ent->client->trail[head].time = level.previousTime;
 
 		// increment the head
@@ -92,7 +94,6 @@ void G_StoreTrail(gentity_t *ent) {
 		newtime = level.previousTime + realTimeSinceFrameStartTime;
 
 		// these checks are just clamping the time in-case it gets out of control.
-		// thehy should only ever really come into effect when the map first starts.
 		if (newtime > level.time) {
 			newtime = level.time;
 		}
@@ -108,6 +109,21 @@ void G_StoreTrail(gentity_t *ent) {
 	ent->client->trail[head].leveltime = level.time;
 	ent->client->trail[head].time = newtime;
 	ent->client->trail[head].animInfo = ent->client->animationInfo;
+}
+
+/*
+=================
+Interpolates
+
+Interpolates along two vectors (start -> end).
+=================
+*/
+void Interpolate(float frac, vec3_t start, vec3_t end, vec3_t out) {
+	float comp = 1.0f - frac;
+
+	out[0] = start[0] * frac + end[0] * comp;
+	out[1] = start[1] * frac + end[1] * comp;
+	out[2] = start[2] * frac + end[2] * comp;
 }
 
 
@@ -141,27 +157,30 @@ void G_TimeShiftClient(gentity_t *ent, int time) {
 		}
 	} while (j != ent->client->trailHead);
 
-	// if we got past the first iteration above, we've sandwiched (or wrapped)
+	// we've found two trail times that "sandwich" the passed in "time"
 	if (found_sandwich) {
-		// save the current origin and bounding box
+		// save the current origin and bounding box; used to untimeshift the client once collision detection is complete
 		VectorCopy(ent->r.mins, ent->client->saved.mins);
 		VectorCopy(ent->r.maxs, ent->client->saved.maxs);
 		VectorCopy(ent->r.currentOrigin, ent->client->saved.currentOrigin);
 		ent->client->saved.leveltime = level.time;
 		ent->client->saved.animInfo = ent->client->animationInfo;
 
-		// shift the client's position back to the record that's nearest to "time"
+		// calculate a fraction that will be used to shift the client's position back to the trail record that's nearest to "time"
 		float frac = (float)(time - ent->client->trail[j].time) / (float)(ent->client->trail[k].time - ent->client->trail[j].time);
-		int best_trail_index = frac < 0.5 ? j : k;
-		clientTrail_t* best_trail = ent->client->trail + best_trail_index;
 
-		// use the best trail's position in the world
-		VectorCopy(best_trail->currentOrigin, ent->r.currentOrigin);
-		// use the best trail's mins & maxs (crouching/standing)
-		VectorCopy(best_trail->mins, ent->r.mins);
-		VectorCopy(best_trail->maxs, ent->r.maxs);
-		// use the best trail's animation info (for head hitbox)
-		ent->client->animationInfo = best_trail->animInfo;
+		// find the "best" origin between the sandwiching trails via interpolation
+		Interpolate(frac, ent->client->trail[j].currentOrigin, ent->client->trail[k].currentOrigin, ent->r.currentOrigin);
+		// find the "best" mins & maxs (crouching/standing).
+		// it doesn't make sense to interpolate mins and maxs. the server either thinks the client
+		// is crouching or not, and updates the mins & maxs immediately. there's no inbetween.
+		int nearest_trail_index = frac < 0.5 ? j : k;
+		VectorCopy(ent->client->trail[nearest_trail_index].mins, ent->r.mins);
+		VectorCopy(ent->client->trail[nearest_trail_index].maxs, ent->r.maxs);
+		// use the trail's animation info that's nearest "time" (for head hitbox)
+		// the current server animation code used for head hitboxes doesn't support interpolating
+		// between two different animation frames (i.e. crouch -> standing animation), so can't interpolate here either.
+		ent->client->animationInfo = ent->client->trail[nearest_trail_index].animInfo;
 
 		// this will recalculate absmin and absmax
 		trap_LinkEntity(ent);
