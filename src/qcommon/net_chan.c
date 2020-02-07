@@ -100,6 +100,58 @@ void Netchan_Setup( netsrc_t sock, netchan_t *chan, netadr_t adr, int qport_valu
 	chan->outgoingSequence = 1;
 }
 
+#if _DEBUG
+
+/*
+==============
+Latency simulation
+==============
+*/
+
+void EnqueueLatencySnapshotMessage(netchan_t* chan, msg_t msg, int latency) {
+	byte* data = Z_Malloc(msg.maxsize);
+	memcpy(data, msg.data, msg.maxsize);
+	msg.data = data;
+	msg.time_received = Sys_Milliseconds() + latency;
+
+	chan->latency_snapshot_messages[chan->lsm_head & MASK_LATENCY_MESSAGES] = msg;
+	if (chan->lsm_head - chan->lsm_tail >= MAX_LATENCY_MESSAGES) {
+		Com_Printf("EnqueueLatencySnapshotMessage: overflow\n");
+		chan->lsm_tail++;
+	}
+
+	chan->lsm_head++;
+}
+
+qboolean LatencySimulation(netchan_t* chan, msg_t *msg) {
+	if (com_latencysim->integer > 0) {
+		if (chan->lsm_head > chan->lsm_tail) {
+			msg_t latency_msg = chan->latency_snapshot_messages[chan->lsm_tail & MASK_LATENCY_MESSAGES];
+			if (latency_msg.time_received <= Sys_Milliseconds()) {
+				EnqueueLatencySnapshotMessage(chan, *msg, com_latencysim->integer);
+				chan->lsm_tail++;
+				byte* msg_data = msg->data;
+				*msg = latency_msg;
+				memcpy(msg_data, msg->data, msg->maxsize);
+				msg->data = msg_data;
+				Z_Free(latency_msg.data);
+			}
+			else {
+				EnqueueLatencySnapshotMessage(chan, *msg, com_latencysim->integer);
+				return qtrue;
+			}
+		}
+		else {
+			EnqueueLatencySnapshotMessage(chan, *msg, com_latencysim->integer);
+			return qtrue;
+		}
+	}
+
+	return qfalse;
+}
+
+#endif
+
 /*
 =================
 Netchan_TransmitNextFragment
@@ -133,6 +185,11 @@ void Netchan_TransmitNextFragment( netchan_t *chan ) {
 	MSG_WriteData( &send, chan->unsentBuffer + chan->unsentFragmentStart, fragmentLength );
 
 	// send the datagram
+#if _DEBUG
+	if (LatencySimulation(chan, &send)) {
+		return;
+	}
+#endif
 	NET_SendPacket( chan->sock, send.cursize, send.data, chan->remoteAddress );
 
 	if ( showpackets->integer ) {
@@ -199,6 +256,11 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data ) {
 	MSG_WriteData( &send, data, length );
 
 	// send the datagram
+#if _DEBUG
+	if (LatencySimulation(chan, &send)) {
+		return;
+	}
+#endif
 	NET_SendPacket( chan->sock, send.cursize, send.data, chan->remoteAddress );
 
 	if ( showpackets->integer ) {
