@@ -39,9 +39,8 @@ void G_ResetTrail(gentity_t *ent) {
 		VectorCopy(ent->r.mins, ent->client->trail[i].mins);
 		VectorCopy(ent->r.maxs, ent->client->trail[i].maxs);
 		VectorCopy(ent->r.currentOrigin, ent->client->trail[i].currentOrigin);
-		ent->client->trail[i].leveltime = time;
 		ent->client->trail[i].time = time;
-		ent->client->trail[i].animInfo = ent->client->animationInfo;
+		ent->client->trail[i].animationInfo = ent->client->animationInfo;
 	}
 }
 
@@ -54,27 +53,27 @@ Keep track of where the client's been (usually called every ClientThink)
 ============
 */
 void G_StoreTrail(gentity_t *ent) {
-	int head, newtime;
+	int newtime;
 
-	if (!IS_ACTIVE(ent)) {
+	// only store trails for actively playing clients.
+	// also, don't store trails if the level time hasn't been set yet (it'll happen next SV_Frame).
+	if (!IS_ACTIVE(ent) || !level.time || !level.previousTime) {
 		return;
 	}
 
-	head = ent->client->trailHead;
+	// limit how often higher fps clients store trails. otherwise we lose too much time-sensitive data that's required for higher ping players.
+	int trail_time_since_last_store = ent->client->pers.cmd.serverTime - ent->client->last_store_trail_time;
+	ent->client->accum_store_trail_time += trail_time_since_last_store;
+	ent->client->last_store_trail_time = ent->client->pers.cmd.serverTime;
+	if (ent->client->accum_store_trail_time < 6) {
+		return;
+	}
+	ent->client->accum_store_trail_time = 0;
 
-	// this code results in only one client trail being stored per server frame (every 50ms).
-	// and eventually that trail will have it's time snapped to a leveltime. this results
-	// in ~500 ms worth of trails into the past.
-	if (ent->client->trail[head].leveltime < level.time) {
-		// we're on a new frame; snap the last head up to the end of frame time
-		ent->client->trail[head].time = level.previousTime;
-
-		// increment the head
-		ent->client->trailHead++;
-		if (ent->client->trailHead >= NUM_CLIENT_TRAILS) {
-			ent->client->trailHead = 0;
-		}
-		head = ent->client->trailHead;
+	// increment the head
+	ent->client->trailHead++;
+	if (ent->client->trailHead >= NUM_CLIENT_TRAILS) {
+		ent->client->trailHead = 0;
 	}
 
 	if (ent->r.svFlags & SVF_BOT) {
@@ -92,23 +91,15 @@ void G_StoreTrail(gentity_t *ent) {
 		// many trail records with duplicate timestamps.
 		int realTimeSinceFrameStartTime = trap_Milliseconds() - level.frameStartTime;
 		newtime = level.previousTime + realTimeSinceFrameStartTime;
-
-		// these checks are just clamping the time in-case it gets out of control.
-		if (newtime > level.time) {
-			newtime = level.time;
-		}
-		else if (newtime <= level.previousTime) {
-			newtime = level.previousTime + 1;
-		}
 	}
 
 	// store all the collision-detection info and the time
-	VectorCopy(ent->r.mins, ent->client->trail[head].mins);
-	VectorCopy(ent->r.maxs, ent->client->trail[head].maxs);
-	VectorCopy(ent->r.currentOrigin, ent->client->trail[head].currentOrigin);
-	ent->client->trail[head].leveltime = level.time;
-	ent->client->trail[head].time = newtime;
-	ent->client->trail[head].animInfo = ent->client->animationInfo;
+	clientTrail_t* trail = &ent->client->trail[ent->client->trailHead];
+	VectorCopy(ent->r.mins, trail->mins);
+	VectorCopy(ent->r.maxs, trail->maxs);
+	VectorCopy(ent->r.currentOrigin, trail->currentOrigin);
+	trail->time = newtime;
+	trail->animationInfo = ent->client->animationInfo;
 }
 
 /*
@@ -136,17 +127,28 @@ Move a client back to where he was at the specified "time"
 */
 void G_TimeShiftClient(gentity_t *ent, int time) {
 	int	j, k;
-	qboolean found_sandwich;
+	qboolean found_trail_times_that_sandwich_time;
+
+	// don't shift clients that are more than 500ms behind the current server time (very laggy).
+	if (level.time - time > 500) {
+		return;
+	}
+
+	// this prevents looping through every trail if we know none of them are <= time.
+	// the trails are "sorted" by time, so if the oldest one isn't <= time, then none of them can be.
+	if (ent->client->trail[(ent->client->trailHead + 1) & (NUM_CLIENT_TRAILS - 1)].time > time) {
+		return;
+	}
 
 	// find two trail records in the origin trail whose times sandwich "time".
 	// assumes no two adjacent trail records have the same timestamp.
 	//
-	// this code will check every trail record, even if the head starts at index 0.. it'll wrap around to 9 and decrease from there.
-	found_sandwich = qfalse;
+	// this code will check every trail record, even if the head starts at index 0.. it'll wrap around to NUM_CLIENT_TRAILS - 1 and decrease from there.
+	found_trail_times_that_sandwich_time = qfalse;
 	j = k = ent->client->trailHead;
 	do {
 		if (ent->client->trail[j].time <= time) {
-			found_sandwich = j != k;
+			found_trail_times_that_sandwich_time = j != k;
 			break;
 		}
 
@@ -157,14 +159,15 @@ void G_TimeShiftClient(gentity_t *ent, int time) {
 		}
 	} while (j != ent->client->trailHead);
 
+	memset(&ent->client->saved_trail, 0, sizeof(clientTrail_t));
+
 	// we've found two trail times that "sandwich" the passed in "time"
-	if (found_sandwich) {
+	if (found_trail_times_that_sandwich_time) {
 		// save the current origin and bounding box; used to untimeshift the client once collision detection is complete
-		VectorCopy(ent->r.mins, ent->client->saved.mins);
-		VectorCopy(ent->r.maxs, ent->client->saved.maxs);
-		VectorCopy(ent->r.currentOrigin, ent->client->saved.currentOrigin);
-		ent->client->saved.leveltime = level.time;
-		ent->client->saved.animInfo = ent->client->animationInfo;
+		VectorCopy(ent->r.mins, ent->client->saved_trail.mins);
+		VectorCopy(ent->r.maxs, ent->client->saved_trail.maxs);
+		VectorCopy(ent->r.currentOrigin, ent->client->saved_trail.currentOrigin);
+		ent->client->saved_trail.animationInfo = ent->client->animationInfo;
 
 		// calculate a fraction that will be used to shift the client's position back to the trail record that's nearest to "time"
 		float frac = (float)(time - ent->client->trail[j].time) / (float)(ent->client->trail[k].time - ent->client->trail[j].time);
@@ -177,10 +180,10 @@ void G_TimeShiftClient(gentity_t *ent, int time) {
 		int nearest_trail_index = frac < 0.5 ? j : k;
 		VectorCopy(ent->client->trail[nearest_trail_index].mins, ent->r.mins);
 		VectorCopy(ent->client->trail[nearest_trail_index].maxs, ent->r.maxs);
-		// use the trail's animation info that's nearest "time" (for head hitbox)
+		// use the trail's animation info that's nearest "time" (for head hitbox).
 		// the current server animation code used for head hitboxes doesn't support interpolating
 		// between two different animation frames (i.e. crouch -> standing animation), so can't interpolate here either.
-		ent->client->animationInfo = ent->client->trail[nearest_trail_index].animInfo;
+		ent->client->animationInfo = ent->client->trail[nearest_trail_index].animationInfo;
 
 		// this will recalculate absmin and absmax
 		trap_LinkEntity(ent);
@@ -225,13 +228,12 @@ Move a client back to where he was before the time shift
 */
 void G_UnTimeShiftClient(gentity_t *ent) {
 	// if it was saved
-	if (ent->client->saved.leveltime == level.time) {
+	if (ent->client->saved_trail.mins[0]) {
 		// move it back
-		VectorCopy(ent->client->saved.mins, ent->r.mins);
-		VectorCopy(ent->client->saved.maxs, ent->r.maxs);
-		VectorCopy(ent->client->saved.currentOrigin, ent->r.currentOrigin);
-		ent->client->saved.leveltime = 0;
-		ent->client->animationInfo = ent->client->saved.animInfo;
+		VectorCopy(ent->client->saved_trail.mins, ent->r.mins);
+		VectorCopy(ent->client->saved_trail.maxs, ent->r.maxs);
+		VectorCopy(ent->client->saved_trail.currentOrigin, ent->r.currentOrigin);
+		ent->client->animationInfo = ent->client->saved_trail.animationInfo;
 
 		// this will recalculate absmin and absmax
 		trap_LinkEntity(ent);

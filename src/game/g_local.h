@@ -632,12 +632,12 @@ typedef struct {
 } clientPersistant_t;
 
 // L0 - antilag 
-#define NUM_CLIENT_TRAILS 10
+#define NUM_CLIENT_TRAILS 64
 typedef struct {
 	vec3_t    mins, maxs;
 	vec3_t    currentOrigin;
-	int       time, leveltime;
-	clientAnimationInfo_t animInfo;
+	int       time;
+	clientAnimationInfo_t animationInfo;
 } clientTrail_t;
 
 #define LT_SPECIAL_PICKUP_MOD	3		// JPW NERVE # of times (minus one for modulo) LT must drop ammo before scoring a point
@@ -733,9 +733,11 @@ struct gclient_s {
 
 // L0 
 	// antilag
-	int              trailHead;
-	clientTrail_t    trail[NUM_CLIENT_TRAILS];
-	clientTrail_t    saved; 
+	int				trailHead;
+	int				last_store_trail_time;
+	int				accum_store_trail_time;
+	clientTrail_t	trail[NUM_CLIENT_TRAILS];
+	clientTrail_t	saved_trail;
 
 	// Double kill
 	int			doublekill;	
