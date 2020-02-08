@@ -35,10 +35,11 @@ the teleport bit is toggled)
 ============
 */
 void G_ResetTrail(gentity_t *ent) {
-	int	i, time, time_increment, sv_fps;
+	int	i, time;
 
-	sv_fps = trap_Cvar_VariableIntegerValue("sv_fps");
-	time_increment = sv_fps == 0 ? 50 : 1000 / sv_fps;
+	// we want to store half a second worth of trails (500ms)
+	const int trail_time_range_ms = 500;
+	const int time_increment = round((double)trail_time_range_ms / (double)NUM_CLIENT_TRAILS);
 
 	// fill up the origin trails with data (assume the current position
 	// for the last 1/2 second or so)
