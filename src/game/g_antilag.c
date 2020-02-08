@@ -206,11 +206,6 @@ void G_TimeShiftAllClients(int time, gentity_t *skip) {
 	int			i;
 	gentity_t	*ent;
 
-	// don't shift clients if the client's simulated server time is past the real server time. the client positions the server currently has will suffice.
-	if (time > level.time) {
-		return;
-	}
-
 	// don't shift clients if "skip" (the client that's trying to timeshift everyone) is more than 500ms behind the current server time (very laggy).
 	if (level.time - time > 500) {
 		return;
