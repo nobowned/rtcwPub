@@ -84,10 +84,10 @@
 #endif
 
 #ifndef ID_INLINE
-#ifdef _WIN32
+#ifdef NDEBUG
 #define ID_INLINE __inline
 #else
-#define ID_INLINE inline
+#define ID_INLINE
 #endif
 #endif
 
