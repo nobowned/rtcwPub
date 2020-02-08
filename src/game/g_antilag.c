@@ -10,13 +10,21 @@ Created: 24. Mar / 2014
 */
 #include "g_local.h"
 
-// OSP 
-#define IS_ACTIVE( x ) ( \
-	x->r.linked == qtrue &&	\
-	x->client->ps.stats[STAT_HEALTH] > 0 && \
-	x->client->sess.sessionTeam != TEAM_SPECTATOR && \
-	(x->client->ps.pm_flags & PMF_LIMBO) == 0	\
-	)
+/*
+============
+IsActiveClient
+
+Is the entity a client that's currently playing in the world (active)?
+============
+*/
+qboolean IsActiveClient(gentity_t* ent) {
+	return	
+		ent->r.linked == qtrue &&
+		ent->client &&
+		ent->client->ps.stats[STAT_HEALTH] > 0 &&
+		ent->client->sess.sessionTeam != TEAM_SPECTATOR &&
+		(ent->client->ps.pm_flags & PMF_LIMBO) == 0;
+}
 
 /*
 ============
@@ -57,7 +65,7 @@ void G_StoreTrail(gentity_t *ent) {
 
 	// only store trails for actively playing clients.
 	// also, don't store trails if the level time hasn't been set yet (it'll happen next SV_Frame).
-	if (!IS_ACTIVE(ent) || !level.time || !level.previousTime) {
+	if (!IsActiveClient(ent) || !level.time || !level.previousTime) {
 		return;
 	}
 
@@ -129,11 +137,6 @@ void G_TimeShiftClient(gentity_t *ent, int time) {
 	int	j, k;
 	qboolean found_trail_times_that_sandwich_time;
 
-	// don't shift clients that are more than 500ms behind the current server time (very laggy).
-	if (level.time - time > 500) {
-		return;
-	}
-
 	// this prevents looping through every trail if we know none of them are <= time.
 	// the trails are "sorted" by time, so if the oldest one isn't <= time, then none of them can be.
 	if (ent->client->trail[(ent->client->trailHead + 1) & (NUM_CLIENT_TRAILS - 1)].time > time) {
@@ -203,11 +206,18 @@ void G_TimeShiftAllClients(int time, gentity_t *skip) {
 	int			i;
 	gentity_t	*ent;
 
+	// don't shift clients if the client's simulated server time is past the real server time. the client positions the server currently has will suffice.
 	if (time > level.time) {
 		return;
 	}
 
-	// for every client
+	// don't shift clients if "skip" (the client that's trying to timeshift everyone) is more than 500ms behind the current server time (very laggy).
+	if (level.time - time > 500) {
+		return;
+	}
+
+	// shift every client thats:
+	// not a spectator, not the "timeshifter" (skip), and not in limbo.
 	ent = &g_entities[0];
 	for (i = 0; i < MAX_CLIENTS; i++, ent++) {
 		if (ent->client && ent->inuse && ent->client->sess.sessionTeam < TEAM_SPECTATOR && ent != skip) {
@@ -227,9 +237,9 @@ Move a client back to where he was before the time shift
 ===================
 */
 void G_UnTimeShiftClient(gentity_t *ent) {
-	// if it was saved
+	// if ent was time shifted
 	if (ent->client->saved_trail.mins[0]) {
-		// move it back
+		// revert the time shift
 		VectorCopy(ent->client->saved_trail.mins, ent->r.mins);
 		VectorCopy(ent->client->saved_trail.maxs, ent->r.maxs);
 		VectorCopy(ent->client->saved_trail.currentOrigin, ent->r.currentOrigin);
@@ -252,6 +262,8 @@ void G_UnTimeShiftAllClients(gentity_t *skip) {
 	int			i;
 	gentity_t	*ent;
 
+	// unshift every client thats:
+	// not a spectator, not the "timeshifter" (skip), and not in limbo.
 	ent = &g_entities[0];
 	for (i = 0; i < MAX_CLIENTS; i++, ent++) {
 		if (ent->client && ent->inuse && ent->client->sess.sessionTeam < TEAM_SPECTATOR && ent != skip) {
