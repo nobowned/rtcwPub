@@ -34,3 +34,6 @@ It can also be useful if you’re experiencing any strange bugs that appear to b
 * info locals  ;  displays local variables of current frame
 * info args  ;  displays arguments of current frame
 * break <function name>  ;  sets breakpoint at function named <function name>
+* continue  ;  continues execution of the program until the next breakpoint is hit
+* next  ;  executes next line (will step over functions)
+* step  ;  executes next line (will step into functions)
