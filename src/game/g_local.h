@@ -632,13 +632,13 @@ typedef struct {
 } clientPersistant_t;
 
 // L0 - antilag 
-#define NUM_CLIENT_TRAILS 64
+#define NUM_CLIENT_TRAIL_NODES 64
 typedef struct {
 	vec3_t    mins, maxs;
 	vec3_t    currentOrigin;
 	int       time;
 	clientAnimationInfo_t animationInfo;
-} clientTrail_t;
+} clientTrailNode_t;
 
 #define LT_SPECIAL_PICKUP_MOD	3		// JPW NERVE # of times (minus one for modulo) LT must drop ammo before scoring a point
 #define MEDIC_SPECIAL_PICKUP_MOD	4	// JPW NERVE same thing for medic
@@ -733,11 +733,11 @@ struct gclient_s {
 
 // L0 
 	// antilag
-	int				trailHead;
-	int				last_store_trail_time;
-	int				accum_store_trail_time;
-	clientTrail_t	trail[NUM_CLIENT_TRAILS];
-	clientTrail_t	saved_trail;
+	int					trail_head;
+	int					last_trail_node_store_time;
+	int					accum_trail_node_store_time;
+	clientTrailNode_t	trail[NUM_CLIENT_TRAIL_NODES];
+	clientTrailNode_t	saved_trail_node;
 
 	// Double kill
 	int			doublekill;	
@@ -1905,7 +1905,7 @@ void RemoveExpiredTempbans(void);
 // g_antilag.c
 //
 void G_ResetTrail(gentity_t *ent);
-void G_StoreTrail(gentity_t *ent);
+void G_StoreTrailNode(gentity_t *ent);
 void G_TimeShiftAllClients(int time, gentity_t *skip);
 void G_UnTimeShiftAllClients(gentity_t *skip);
 

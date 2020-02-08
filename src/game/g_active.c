@@ -1771,7 +1771,7 @@ void ClientThink_real( gentity_t *ent ) {
 	VectorCopy( ent->client->ps.origin, ent->r.currentOrigin );
 
 	// L0 - antilag
-	G_StoreTrail(ent);
+	G_StoreTrailNode(ent);
 
 	// touch other objects
 	ClientImpacts( ent, &pm );
