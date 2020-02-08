@@ -46,13 +46,13 @@ clientAnimationInfo_t lastAnimInfo;
 float LAVangle;
 float sp, sy, cp, cy;
 
-__inline void LocalVectorMA(vec3_t org, float dist, vec3_t vec, vec3_t out) {
+ID_INLINE void LocalVectorMA(vec3_t org, float dist, vec3_t vec, vec3_t out) {
 	out[0] = org[0] + dist * vec[0];
 	out[1] = org[1] + dist * vec[1];
 	out[2] = org[2] + dist * vec[2];
 }
 
-__inline void SLerp_Normal(vec3_t from, vec3_t to, float tt, vec3_t out) {
+ID_INLINE void SLerp_Normal(vec3_t from, vec3_t to, float tt, vec3_t out) {
 	float ft = 1.0 - tt;
 
 	out[0] = from[0] * ft + to[0] * tt;
@@ -62,7 +62,7 @@ __inline void SLerp_Normal(vec3_t from, vec3_t to, float tt, vec3_t out) {
 	VectorNormalize(out);
 }
 
-__inline void LocalAngleVector(vec3_t angles, vec3_t forward) {
+ID_INLINE void LocalAngleVector(vec3_t angles, vec3_t forward) {
 	LAVangle = angles[YAW] * (M_PI * 2 / 360);
 	sy = sin(LAVangle);
 	cy = cos(LAVangle);
@@ -78,7 +78,7 @@ __inline void LocalAngleVector(vec3_t angles, vec3_t forward) {
 // can put an axis rotation followed by a translation directly into one matrix
 // TTimo: const usage would require an explicit cast, non ANSI C
 // see unix/const-arg.c
-__inline void Matrix4FromAxisPlusTranslation( /*const*/ vec3_t axis[3], const vec3_t t, vec4_t dst[4]) {
+ID_INLINE void Matrix4FromAxisPlusTranslation( /*const*/ vec3_t axis[3], const vec3_t t, vec4_t dst[4]) {
 	int i, j;
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j < 3; j++) {
@@ -93,7 +93,7 @@ __inline void Matrix4FromAxisPlusTranslation( /*const*/ vec3_t axis[3], const ve
 // can put a scaled axis rotation followed by a translation directly into one matrix
 // TTimo: const usage would require an explicit cast, non ANSI C
 // see unix/const-arg.c
-__inline void Matrix4FromScaledAxisPlusTranslation( /*const*/ vec3_t axis[3], const float scale, const vec3_t t, vec4_t dst[4]) {
+ID_INLINE void Matrix4FromScaledAxisPlusTranslation( /*const*/ vec3_t axis[3], const float scale, const vec3_t t, vec4_t dst[4]) {
 	int i, j;
 
 	for (i = 0; i < 3; i++) {
@@ -111,7 +111,7 @@ __inline void Matrix4FromScaledAxisPlusTranslation( /*const*/ vec3_t axis[3], co
 
 // TTimo: const usage would require an explicit cast, non ANSI C
 // see unix/const-arg.c
-__inline void Matrix4MultiplyInto3x3AndTranslation( /*const*/ vec4_t a[4], /*const*/ vec4_t b[4], vec3_t dst[3], vec3_t t) {
+ID_INLINE void Matrix4MultiplyInto3x3AndTranslation( /*const*/ vec4_t a[4], /*const*/ vec4_t b[4], vec3_t dst[3], vec3_t t) {
 	dst[0][0] = a[0][0] * b[0][0] + a[0][1] * b[1][0] + a[0][2] * b[2][0] + a[0][3] * b[3][0];
 	dst[0][1] = a[0][0] * b[0][1] + a[0][1] * b[1][1] + a[0][2] * b[2][1] + a[0][3] * b[3][1];
 	dst[0][2] = a[0][0] * b[0][2] + a[0][1] * b[1][2] + a[0][2] * b[2][2] + a[0][3] * b[3][2];
@@ -128,13 +128,13 @@ __inline void Matrix4MultiplyInto3x3AndTranslation( /*const*/ vec4_t a[4], /*con
 	t[2] = a[2][0] * b[0][3] + a[2][1] * b[1][3] + a[2][2] * b[2][3] + a[2][3] * b[3][3];
 }
 
-__inline void LocalScaledMatrixTransformVector(vec3_t in, float s, vec3_t mat[3], vec3_t out) {
+ID_INLINE void LocalScaledMatrixTransformVector(vec3_t in, float s, vec3_t mat[3], vec3_t out) {
 	out[0] = (1.0f - s) * in[0] + s * (in[0] * mat[0][0] + in[1] * mat[0][1] + in[2] * mat[0][2]);
 	out[1] = (1.0f - s) * in[1] + s * (in[0] * mat[1][0] + in[1] * mat[1][1] + in[2] * mat[1][2]);
 	out[2] = (1.0f - s) * in[2] + s * (in[0] * mat[2][0] + in[1] * mat[2][1] + in[2] * mat[2][2]);
 }
 
-__inline void Matrix3Transpose(vec3_t matrix[3], vec3_t transpose[3]) {
+ID_INLINE void Matrix3Transpose(vec3_t matrix[3], vec3_t transpose[3]) {
 	int i, j;
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j < 3; j++) {

@@ -83,6 +83,14 @@
 
 #endif
 
+#ifndef ID_INLINE
+#ifdef _WIN32
+#define ID_INLINE __inline
+#else
+#define ID_INLINE inline
+#endif
+#endif
+
 
 // this is the define for determining if we have an asm version of a C function
 #if (defined _M_IX86 || defined __i386__) && !defined __sun__  && !defined __LCC__
