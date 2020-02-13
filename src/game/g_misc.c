@@ -1619,7 +1619,7 @@ void Fire_Lead(gentity_t *ent, gentity_t *activator, float spread, int damage,
 		}
 
 // JPW NERVE added this event so tracers work if you're shooting mg42 into skybox, otherwise shouldn't ever see the event double-up
-		tent = G_TempEntity(tr.endpos, EV_MG42BULLET_HIT_WALL);
+		tent = G_TempEntity(tr.endpos, EV_MG42BULLET_HIT_WALL_COMPAT);
 		tent->s.otherEntityNum = ent->s.number;
 		tent->s.otherEntityNum2 = activator->s.number;
 		tent->s.effect1Time = seed;
@@ -1635,7 +1635,7 @@ void Fire_Lead(gentity_t *ent, gentity_t *activator, float spread, int damage,
 
 	// send bullet impact
 	if ( traceEnt->takedamage && traceEnt->client ) {
-		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_FLESH );
+		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_FLESH_COMPAT );
 		tent->s.eventParm = traceEnt->s.number;
 		tent->s.otherEntityNum = ent->s.number;
 		tent->s.otherEntityNum2 = activator->s.number;
@@ -1650,7 +1650,7 @@ void Fire_Lead(gentity_t *ent, gentity_t *activator, float spread, int damage,
 		vec3_t	reflect;
 		float	dot;
 
-		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_WALL);
+		tent = G_TempEntity( tr.endpos, EV_MG42BULLET_HIT_WALL_COMPAT);
 
 		dot = DotProduct( forward, tr.plane.normal );
 		VectorMA( forward, -2*dot, tr.plane.normal, reflect );
@@ -2049,7 +2049,7 @@ void mg42_spawn (gentity_t *ent)
 	gun->clipmask = CONTENTS_SOLID;
 	gun->r.contents = CONTENTS_TRIGGER;
 	gun->r.svFlags = SVF_USE_CURRENT_ORIGIN;
-	gun->s.eType = ET_MG42_BARREL;
+	gun->s.eType = ET_MG42_BARREL_COMPAT;
 	gun->health = base->health; // JPW NERVE
 
 	// DHM - Don't need to specify here, handled in G_CheckForCursorHints
