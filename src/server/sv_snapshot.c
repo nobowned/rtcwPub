@@ -642,17 +642,23 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		state = &svs.snapshotEntities[svs.nextSnapshotEntities % svs.numSnapshotEntities];
 		*state = ent->s;
 
-		// fix for 1.4/1.0 client event entities (G_TempEntity).
-		if (client->protocol != PROTOCOL_VERSION_1_4) {
-			if (state->eType > ET_EVENTS) {
-				if (state->eType == ET_EVENTS + EV_MG42BULLET_HIT_WALL) {
-					state->eType = ET_EVENTS + EV_BULLET_HIT_WALL;
-				} else if (state->eType == ET_EVENTS + EV_MG42BULLET_HIT_FLESH) {
-					state->eType = ET_EVENTS + EV_BULLET_HIT_FLESH;
-				}
-				state->eType -= 4;
-			} else if (state->eType > ET_MOVERSCALED) {
+		if (client->protocol == PROTOCOL_VERSION_1_0) {
+			if (state->eType == EV_MG42BULLET_HIT_WALL_COMPAT_FINAL) {
+				state->eType = EV_BULLET_HIT_WALL_FINAL;
+			} else if (state->eType == EV_MG42BULLET_HIT_FLESH_COMPAT_FINAL) {
+				state->eType = EV_BULLET_HIT_FLESH_FINAL;
+			} else if (state->eType == ET_MG42_BARREL_COMPAT) {
 				state->eType = ET_GENERAL;
+			}
+		} else if (client->protocol == PROTOCOL_VERSION_1_4) {
+			if (state->eType == EV_MG42BULLET_HIT_WALL_COMPAT_FINAL) {
+				state->eType = EV_MG42BULLET_HIT_WALL_FINAL;
+			} else if (state->eType == EV_MG42BULLET_HIT_FLESH_COMPAT_FINAL) {
+				state->eType = EV_MG42BULLET_HIT_FLESH_FINAL;
+			} else if (state->eType == ET_MG42_BARREL_COMPAT) {
+				state->eType = ET_MG42_BARREL;
+			} else if (state->eType > ET_EVENTS) {
+				state->eType += COMPAT_OFFSET;
 			}
 		}
 

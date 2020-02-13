@@ -9,7 +9,7 @@ CFLAGSREL := \
 DCFLAGSREL := \
 	-m32 -pipe -march=pentium4 -g -fomit-frame-pointer -ffast-math \
 	-falign-loops=2 -falign-jumps=2 -falign-functions=2 \
-	-fno-strict-aliasing -fstrength-reduce -DNDEBUG $(CFLAGSEXT)
+	-fno-strict-aliasing -fstrength-reduce $(CFLAGSEXT)
 
 %.o : %.nasm
 	$(NASM) -f elf -o $@ $<

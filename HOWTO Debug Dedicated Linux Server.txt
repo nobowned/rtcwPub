@@ -1,0 +1,39 @@
+=======================
+How-to debug wolf dedicated server in linux
+=======================
+
+Why: It’s primarily useful for when your linux wolf server is randomly crashing in a production environment (while players are playing). 
+You can follow the steps below to create a debuggable linux wolf server, run it in debug mode, and then when it crashes gdb will stop execution
+at the crash site allowing you to inspect the current frame and frames further up the call stack (backtrace). Hopefully doing so will reveal some useful information, and this information will provide a permanent solution.
+
+It can also be useful if you’re experiencing any strange bugs that appear to be linux-specific. In this case you would need to strategically set breakpoints in gdb before running the wolf server process.
+
+== Compile debug version of server ==
+1. Navigate to src/linux
+2. Run: make server-debug
+3. Verify wolfded_debug.x86 was created
+4. Navigate to src/game
+5. Run: make debug
+6. Verify qagame.mp.i386_debug.so was created
+7. Remove _debug from the name qagame.mp.i386_debug.so
+8. Copy these files over to your dedicated linux wolf server
+
+== Run debug version of server with gdb and screen ==
+1. Navigate to your wolf server; wherever wolfded_debug.x86 is located
+2. screen -S <session name>
+3. gdb --args wolfded_debug.x86 +exec server.cfg +set net_ip <ip_address> +set net_port 27960 +set fs_game rtcwPub +set sv_maxclients 16 +set rconpassword poodle +set sv_hostname Deathmatch +set sv_pure 0
+4. Type r and then enter to start gdb, which will also start the wolf server
+5. Then press “ctrl + a + d” together to detach the screen session
+6. Then do screen -list to verify that the session is in progress.
+
+== Gdb debugging commands (https://linux.die.net/man/1/gdb) ==
+* frame  ;  displays current frame
+* up  ;  moves up a frame
+* down  ;  moves down a frame
+* bt or backtrace  ;  displays last 10 frames
+* info locals  ;  displays local variables of current frame
+* info args  ;  displays arguments of current frame
+* break <function name>  ;  sets breakpoint at function named <function name>
+* continue  ;  continues execution of the program until the next breakpoint is hit
+* next  ;  executes next line (will step over functions)
+* step  ;  executes next line (will step into functions)

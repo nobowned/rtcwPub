@@ -630,8 +630,6 @@ void BotAddToAvoidReach( bot_movestate_t *ms, int number, float avoidtime ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-//__inline int AAS_AreaContentsTravelFlag(int areanum);
-
 int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 							  int lastgoalareanum, int lastareanum,
 							  int *avoidreach, float *avoidreachtimes, int *avoidreachtries,

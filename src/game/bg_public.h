@@ -812,11 +812,29 @@ typedef enum {
 	EV_POPUP,
 	EV_POPUPBOOK,
 	EV_GIVEPAGE,	//----(SA)	added
-	EV_MG42BULLET_HIT_FLESH, // for 1.4 mg42 fix    // Arnout: these two send the seed as well
-	EV_MG42BULLET_HIT_WALL, // for 1.4 mg42 fix
-	EV_MAX_EVENTS	// just added as an 'endcap'
+
+	EV_MAX_EVENTS,	// just added as an 'endcap'
 
 } entity_event_t;
+
+typedef enum {
+	EV_MG42BULLET_HIT_FLESH = 141,
+	EV_MG42BULLET_HIT_WALL,
+
+	EV_MG42BULLET_HIT_FLESH_COMPAT = 500, // for 1.4 mg42 fix    // Arnout: these two send the seed as well
+	EV_MG42BULLET_HIT_WALL_COMPAT, // for 1.4 mg42 fix
+} entity_event_compat_t;
+
+#define EV_BULLET_HIT_FLESH_FINAL EV_BULLET_HIT_FLESH + ET_EVENTS
+#define EV_BULLET_HIT_WALL_FINAL EV_BULLET_HIT_WALL + ET_EVENTS
+
+#define EV_MG42BULLET_HIT_FLESH_FINAL EV_MG42BULLET_HIT_FLESH + ET_EVENTS_COMPAT
+#define EV_MG42BULLET_HIT_WALL_FINAL EV_MG42BULLET_HIT_WALL + ET_EVENTS_COMPAT
+
+#define EV_MG42BULLET_HIT_FLESH_COMPAT_FINAL EV_MG42BULLET_HIT_FLESH_COMPAT + ET_EVENTS
+#define EV_MG42BULLET_HIT_WALL_COMPAT_FINAL EV_MG42BULLET_HIT_WALL_COMPAT + ET_EVENTS
+
+#define COMPAT_OFFSET (ET_EVENTS_COMPAT - ET_CORPSE)
 
 
 // animations
@@ -1355,16 +1373,22 @@ typedef enum {
 	ET_CAMERA,
 	ET_MOVERSCALED,
 
-	ET_CORPSE,              // Arnout: dead player
-	ET_SMOKER,              // Arnout: target_smoke entity
-
-	ET_TEMPHEAD,            // Gordon: temporary head for clients for bullet traces
-
-	ET_MG42_BARREL,         // Arnout: MG42 barrel
-
 	ET_EVENTS				// any of the EV_* events can be added freestanding
 } entityType_t;
 
+typedef enum {
+	ET_CORPSE = 36,         // Arnout: dead player
+	ET_SMOKER,              // Arnout: target_smoke entity
+	ET_TEMPHEAD,            // Gordon: temporary head for clients for bullet traces
+	ET_MG42_BARREL,         // Arnout: MG42 barrel
+
+	ET_EVENTS_COMPAT,
+
+	ET_CORPSE_COMPAT = 300,         // Arnout: dead player
+	ET_SMOKER_COMPAT,              // Arnout: target_smoke entity
+	ET_TEMPHEAD_COMPAT,            // Gordon: temporary head for clients for bullet traces
+	ET_MG42_BARREL_COMPAT,         // Arnout: MG42 barrel
+} entityTypeCompat_t;
 
 // cursorhints (stored in ent->s.dmgFlags since that's only used for players at the moment)
 typedef enum {
