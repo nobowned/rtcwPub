@@ -84,7 +84,7 @@
 #endif
 
 #ifndef ID_INLINE
-#ifdef NDEBUG
+#if defined(NDEBUG) || defined(_WIN32)
 #define ID_INLINE __inline
 #else
 #define ID_INLINE
