@@ -1019,63 +1019,142 @@ float	*tv( float x, float y, float z ) {
 =====================================================================
 */
 
+
+// ================= INFO VALIDATION =================
+
 #define MAX_KEY_VALUE_ARRAY_LENGTH 64
+#define MAX_TOKENS_ARRAY_LENGTH MAX_KEY_VALUE_ARRAY_LENGTH * 2
 #define MAX_KEY_VALUE_LENGTH 256
 
-typedef struct userinfo_gather_result_t {
-	char keys[MAX_KEY_VALUE_ARRAY_LENGTH][MAX_KEY_VALUE_LENGTH];
+typedef enum {
+	INFO_ERROR_NONE,
+	INFO_ERROR_ARRAY_LENGTH_EXCEEDED,
+	INFO_ERROR_KEY_VALUE_LENGTH_EXCEED,
+	INFO_ERROR_KEY_VALUE_COUNT_MISMATCH,
+	INFO_ERROR_EMPTY,
+} info_gather_result_error_t;
+
+typedef struct info_gather_result_t {
+	char* keys[MAX_KEY_VALUE_ARRAY_LENGTH];
 	int keys_length;
 
-	char values[MAX_KEY_VALUE_ARRAY_LENGTH][MAX_KEY_VALUE_LENGTH];
+	char* values[MAX_KEY_VALUE_ARRAY_LENGTH];
 	int values_length;
-} userinfo_gather_result_t;
 
-void Info_WriteToStringArray(char str_array[MAX_KEY_VALUE_ARRAY_LENGTH][MAX_KEY_VALUE_LENGTH], int* str_array_length, const char* value, int value_length) {
-	if (*str_array_length >= MAX_KEY_VALUE_ARRAY_LENGTH) {
-		Com_Error(ERR_FATAL, "Userinfo key/value max array length of %d exceeded.", MAX_KEY_VALUE_ARRAY_LENGTH);
+	info_gather_result_error_t error;
+} info_gather_result_t;
+
+char* Info_ErrorToString(info_gather_result_error_t error) {
+	switch (error) {
+	case INFO_ERROR_ARRAY_LENGTH_EXCEEDED:
+		return "Info key/value max array length exceeded.";
+	case INFO_ERROR_KEY_VALUE_LENGTH_EXCEED:
+		return "Info key/value max length exceeded.";
+	case INFO_ERROR_KEY_VALUE_COUNT_MISMATCH:
+		return "Info key/value count mismatch.";
+	case INFO_ERROR_EMPTY:
+		return "Info is empty.";
+	default:
+		return "";
 	}
-
-	if (value_length > MAX_KEY_VALUE_LENGTH) {
-		Com_Error(ERR_FATAL, "Userinfo key/value max length of %d exceeded.", MAX_KEY_VALUE_LENGTH);
-	}
-
-	Q_strncpyz(str_array[*str_array_length], value, value_length > MAX_KEY_VALUE_LENGTH ? MAX_KEY_VALUE_LENGTH : value_length);
-	*str_array_length = *str_array_length + 1;
 }
 
-userinfo_gather_result_t* Info_GatherKeysAndValues(const char* s) {
-	const char* key, * value;
-	int length;
+info_gather_result_error_t Info_TokenizeString(const char* string, char tokenized[MAX_TOKENS_ARRAY_LENGTH][MAX_KEY_VALUE_LENGTH], int *tokenized_length) {
+	char* end, * start;
+	int current_token_index, token_length;
 
-	static userinfo_gather_result_t result;
-	memset(&result, 0, sizeof(userinfo_gather_result_t));
-
-	value = s;
-
-	while (value != NULL && *value != 0 && (key = strchr(value, '\\')) != NULL && ++key != NULL && *key != 0) {
-		if (value != s) {
-			length = key - value;
-			Info_WriteToStringArray(result.values, &result.values_length, value, length);
-		}
-
-		value = strchr(key, '\\');
-		if (value != NULL && ++value != NULL) {
-			length = value - key;
-			Info_WriteToStringArray(result.keys, &result.keys_length, key, length);
-		}
-		else {
-			length = strlen(key) + 1;
-			Info_WriteToStringArray(result.keys, &result.keys_length, key, length);
-		}
+	if (!string || !string[0]) {
+		return INFO_ERROR_EMPTY;
 	}
 
-	if (value != NULL && *value != 0) {
-		length = strlen(value) + 1;
-		Info_WriteToStringArray(result.values, &result.values_length, value, length);
+	current_token_index = 0;
+
+	start = (char*)string;
+	if (start[0] == '\\') {
+		start++;
+	}
+
+	while ((end = strchr(start, '\\')) != NULL || (end = strchr(start, '\0')) != NULL) {
+		if (current_token_index >= MAX_TOKENS_ARRAY_LENGTH) {
+			return INFO_ERROR_ARRAY_LENGTH_EXCEEDED;
+		}
+		token_length = (end - start) + 1;
+		if (token_length >= MAX_KEY_VALUE_LENGTH) {
+			return INFO_ERROR_KEY_VALUE_LENGTH_EXCEED;
+		}
+		Q_strncpyz(tokenized[current_token_index++], start, token_length);
+		if (*end == '\0') {
+			break;
+		}
+		start = end + 1;
+	}
+
+	*tokenized_length = current_token_index;
+
+	return INFO_ERROR_NONE;
+}
+
+info_gather_result_t *Info_GatherKeysAndValues(const char* s) {
+	int tokens_length, key_index, value_index;
+	
+	static char tokens[MAX_TOKENS_ARRAY_LENGTH][MAX_KEY_VALUE_LENGTH];
+	static info_gather_result_t result;
+
+	result.error = Info_TokenizeString(s, tokens, &tokens_length);
+	if (result.error != INFO_ERROR_NONE) {
+		return &result;
+	}
+
+	if (tokens_length % 2 != 0) {
+		result.error = INFO_ERROR_KEY_VALUE_COUNT_MISMATCH;
+		return &result;
+	}
+
+	result.keys_length = result.values_length = 0;
+
+	for (key_index = 0, value_index = 1; value_index < tokens_length; key_index += 2, value_index += 2) {
+		result.keys[result.keys_length++] = tokens[key_index];
+		result.values[result.values_length++] = tokens[value_index];
 	}
 
 	return &result;
 }
+
+char* Info_Validate(const char* s) {
+	int i, j;
+
+	// Check for malformed or illegal info strings
+	if (strchr(s, ';') || strchr(s, '\"')) {
+		return "Invalid characters in info.";
+	}
+
+	info_gather_result_t* info = Info_GatherKeysAndValues(s);
+
+	if (info->error != INFO_ERROR_NONE) {
+		return Info_ErrorToString(info->error);
+	}
+
+	// Check for duplicate keys.
+	for (i = 0; i < info->keys_length; ++i) {
+		char* key = info->keys[i];
+
+		for (j = 0; j < info->keys_length; ++j) {
+			if (i == j) {
+				continue;
+			}
+
+			char* check = info->keys[j];
+
+			if (Q_stricmp(key, check) == 0) {
+				return va("Duplicate key '%s' in info.", key);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+// ================= INFO VALIDATION =================
 
 /*
 ===============
@@ -1176,40 +1255,62 @@ void Info_NextPair( const char **head, char *key, char *value ) {
 	*head = s;
 }
 
-
 /*
 ===================
 Info_RemoveKey
 ===================
 */
 void Info_RemoveKey( char *s, const char *key ) {
-	char result[MAX_INFO_STRING];
-	int	i;
+	char    *start;
+	char pkey[MAX_INFO_KEY];
+	char value[MAX_INFO_VALUE];
+	char    *o;
 
 	if ( strlen( s ) >= MAX_INFO_STRING ) {
 		Com_Error( ERR_DROP, "Info_RemoveKey: oversize infostring" );
 	}
 
-	if (strchr (key, '\\')) {
+	if ( strchr( key, '\\' ) ) {
 		return;
 	}
 
-	userinfo_gather_result_t *userinfo = Info_GatherKeysAndValues(s);
-	if (userinfo->keys_length != userinfo->values_length || userinfo->keys_length == 0) {
-		return;
-	}
+	while ( 1 )
+	{
+		start = s;
+		if ( *s == '\\' ) {
+			s++;
+		}
+		o = pkey;
+		while ( *s != '\\' )
+		{
+			if ( !*s ) {
+				return;
+			}
+			*o++ = *s++;
+		}
+		*o = 0;
+		s++;
 
-	memset(result, 0, sizeof(result));
+		o = value;
+		while ( *s != '\\' && *s )
+		{
+			if ( !*s ) {
+				return;
+			}
+			*o++ = *s++;
+		}
+		*o = 0;
 
-	for (i = 0; i < userinfo->keys_length; ++i) {
-		char* ukey = userinfo->keys[i];
-		if (Q_stricmp(ukey, key)) {
-			char* key_and_value = va("\\%s\\%s", ukey, userinfo->values[i]);
-			Q_strcat(result, sizeof(result), key_and_value);
+		if ( !strcmp( key, pkey ) ) {
+			memmove(start, s, strlen(s) + 1); // remove this part
+			return;
+		}
+
+		if ( !*s ) {
+			return;
 		}
 	}
 
-	Q_strncpyz(s, result, sizeof(result));
 }
 
 /*
@@ -1218,93 +1319,56 @@ Info_RemoveKey_Big
 ===================
 */
 void Info_RemoveKey_Big( char *s, const char *key ) {
-	char result[BIG_INFO_STRING];
-	int	i;
+	char    *start;
+	char pkey[BIG_INFO_KEY];
+	char value[BIG_INFO_VALUE];
+	char    *o;
 
-	if (strlen(s) >= BIG_INFO_STRING) {
-		Com_Error(ERR_DROP, "Info_RemoveKey: oversize infostring");
+	if ( strlen( s ) >= BIG_INFO_STRING ) {
+		Com_Error( ERR_DROP, "Info_RemoveKey_Big: oversize infostring" );
 	}
 
-	if (strchr(key, '\\')) {
+	if ( strchr( key, '\\' ) ) {
 		return;
 	}
 
-	userinfo_gather_result_t* userinfo = Info_GatherKeysAndValues(s);
-	if (userinfo->keys_length != userinfo->values_length || userinfo->keys_length == 0) {
-		return;
-	}
-
-	memset(result, 0, sizeof(result));
-
-	for (i = 0; i < userinfo->keys_length; ++i) {
-		char* ukey = userinfo->keys[i];
-		if (Q_stricmp(ukey, key)) {
-			char* key_and_value = va("\\%s\\%s", ukey, userinfo->values[i]);
-			Q_strcat(result, sizeof(result), key_and_value);
+	while ( 1 )
+	{
+		start = s;
+		if ( *s == '\\' ) {
+			s++;
 		}
-	}
-
-	Q_strncpyz(s, result, sizeof(result));
-}
-
-char *Info_Validate(const char* s) {
-	int i, j;
-
-	// Check for malformed or illegal info strings
-	if (strchr(s, ';') || strchr(s, '\"'))
-	{
-		return "Invalid characters in userinfo.";
-	}
-
-	userinfo_gather_result_t *userinfo = Info_GatherKeysAndValues(s);
-
-	if (userinfo->keys_length == 0 && userinfo->values_length == 0)
-	{
-		return "Empty userinfo.";
-	}
-
-	if (userinfo->keys_length > userinfo->values_length)
-	{
-		return "More keys than values in userinfo.";
-	}
-
-	if (userinfo->values_length > userinfo->keys_length)
-	{
-		return "More values than keys in userinfo.";
-	}
-
-	if (userinfo->keys_length > MAX_KEY_VALUE_ARRAY_LENGTH)
-	{
-		return "Too many keys in userinfo.";
-	}
-
-	if (userinfo->values_length > MAX_KEY_VALUE_ARRAY_LENGTH)
-	{
-		return "Too many values in userinfo.";
-	}
-
-	// Check for duplicate keys.
-	for (i = 0; i < userinfo->keys_length; ++i)
-	{
-		char* key = userinfo->keys[i];
-
-		for (j = 0; j < userinfo->keys_length; ++j)
+		o = pkey;
+		while ( *s != '\\' )
 		{
-			if (i == j)
-			{
-				continue;
+			if ( !*s ) {
+				return;
 			}
+			*o++ = *s++;
+		}
+		*o = 0;
+		s++;
 
-			char* check = userinfo->keys[j];
-
-			if (Q_stricmp(key, check) == 0)
-			{
-				return va("Duplicate key '%s' in userinfo.", key);
+		o = value;
+		while ( *s != '\\' && *s )
+		{
+			if ( !*s ) {
+				return;
 			}
+			*o++ = *s++;
+		}
+		*o = 0;
+
+		if ( !strcmp( key, pkey ) ) {
+			memmove(start, s, strlen(s) + 1); // remove this part
+			return;
+		}
+
+		if ( !*s ) {
+			return;
 		}
 	}
 
-	return NULL;
 }
 
 /*
