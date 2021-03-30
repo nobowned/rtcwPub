@@ -1704,15 +1704,17 @@ void ClientUserinfoChanged( int clientNum ) {
 
 //----(SA) modified these for head separation
 
-	if ( ent->r.svFlags & SVF_BOT ) {
-		s = va("n\\%s\\t\\%i\\model\\%s\\head\\%s\\c1\\%d\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s",
+	if (ent->r.svFlags & SVF_BOT) {
+		s = va("n\\%s\\t\\%i\\model\\%s\\head\\%s\\c1\\%d\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\uci\\%i",
+			//s = va("n\\%s\\t\\%i\\model\\%s\\head\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\uci\\%u",
 			client->pers.netname, client->sess.sessionTeam, model, head, 0,
 			client->pers.maxHealth, client->sess.wins, client->sess.losses,
-			Info_ValueForKey( userinfo, "skill" ) );
-	} else {
-		s = va("n\\%s\\t\\%i\\model\\%s\\head\\%s\\c1\\%d\\hc\\%i\\w\\%i\\l\\%i",
+			Info_ValueForKey(userinfo, "skill"), client->sess.uci /* L0 - GeoIP */);
+	}
+	else {
+		s = va("n\\%s\\t\\%i\\model\\%s\\head\\%s\\c1\\%d\\hc\\%i\\w\\%i\\l\\%i\\uci\\%i",
 			client->pers.netname, client->sess.sessionTeam, model, head, 0,
-			client->pers.maxHealth, client->sess.wins, client->sess.losses );
+			client->pers.maxHealth, client->sess.wins, client->sess.losses, client->sess.uci /* L0 - GeoIP */); //Elver GeoIP
 	}
 
 //----(SA) end
@@ -1877,6 +1879,60 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 			return "Bot connect failed..";
 		}
 	}
+
+	// Elver GeoIP add
+	// L0 - mcwf's GeoIP
+	if (gidb != NULL) {
+		// L0 - bug fix :)
+		// Since we lose ip after initial connection, flags get resetted
+		// as soon as client info changes (renames etc..) so we get "unknown" flag.
+		// This fixes the issue, although it can happen that if client connects
+		// few seconds when map get's resetted or restarted, he ends up with ""unknown"
+		// location, but that gets fixed as soon as game ends/map restarts etc...
+
+		//value = Info_ValueForKey(userinfo, "ip");
+
+		if (!strcmp(value, "localhost")) {
+			client->sess.uci = 0;
+		}
+		if (firstTime) {
+			Info_SetValueForKey(userinfo, "ip", ip_without_port);
+			value = Info_ValueForKey(userinfo, "ip");
+			value = ip_without_port;
+		}
+		else {
+			value = G_GetUnpackedIpAddress(client->sess.ip, qtrue);
+
+		}
+
+		if (!strcmp(value, "localhost")) {
+			client->sess.uci = 0;
+		}
+		else
+		{
+			unsigned long ip = GeoIP_addr_to_num(value);
+			if (((ip & 0xFF000000) == 0x0A000000) ||
+				((ip & 0xFFF00000) == 0xAC100000) ||
+				((ip & 0xFFFF0000) == 0xC0A80000)) {
+				client->sess.uci = 0;
+			}
+			else
+			{
+				unsigned int ret = GeoIP_seek_record(gidb, ip);
+				if (ret > 0) {
+					client->sess.uci = ret;
+				}
+				else {
+					client->sess.uci = 246;
+					G_LogPrintf("GeoIP: This IP:%s cannot be located\n", value);
+				}
+			}
+		}
+	}
+	else { // gidb == NULL
+		client->sess.uci = 255; //Don't draw anything if DB error
+	}
+	// L0 - end
 
 	// get and distribute relevent paramters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );

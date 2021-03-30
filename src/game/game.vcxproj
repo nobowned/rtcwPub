@@ -320,6 +320,7 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
     </ClCompile>
     <ClCompile Include="g_files.c" />
+    <ClCompile Include="g_geoip.c" />
     <ClCompile Include="g_hacks.c" />
     <ClCompile Include="g_items.c">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -463,6 +464,7 @@
     <ClInclude Include="botlib.h" />
     <ClInclude Include="..\botai\chars.h" />
     <ClInclude Include="g_admin.h" />
+    <ClInclude Include="g_geoip.h" />
     <ClInclude Include="g_local.h" />
     <ClInclude Include="g_public.h" />
     <ClInclude Include="g_stats.h" />

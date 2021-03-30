@@ -1882,6 +1882,8 @@ void G_InitGame(int levelTime, int randomSeed, int restart) {
 		stats_InitRoundStats();
 	}
 
+	GeoIP_open();   //geoip   //open/update //Elver Add
+
 	end_time = trap_Milliseconds();
 
 	G_Printf(va("G_InitGame load time: %d msec\n", end_time - initial_time));
@@ -1905,6 +1907,7 @@ G_ShutdownGame
 */
 void G_ShutdownGame( int restart ) {
 	char logfile[MAX_CVAR_VALUE_STRING];
+	GeoIP_close(); // geoip //Elver add
 
 	if (g_gametype.integer != GT_SINGLE_PLAYER) {
 		G_Printf ("==== ShutdownGame ====\n");

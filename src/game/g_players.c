@@ -8,6 +8,7 @@ Created: 25. Mar / 2014
 ===========================================================================
 */
 #include "g_admin.h"
+#include "g_geoip.h"
 
 /*
 ===========
@@ -253,6 +254,129 @@ void Cmd_throwKnives(gentity_t *ent) {
 	}
 
 	ent->thrownKnifeTime = level.time;
+}
+
+//Elver Adding stuff
+
+void Cmd_listplayers(gentity_t* ent) {
+	gclient_t* cl;
+	int	i, j;
+	char server_ip[16];
+	int server_port;
+	char* ip_out = NULL;
+	// uptime
+	int secs = level.time / 1000;
+	int mins = (secs / 60) % 60;
+	int hours = (secs / 3600) % 24;
+	int days = (secs / (3600 * 24));
+
+	char		mapName[64];
+
+
+
+	trap_Cvar_VariableStringBuffer("sv_ipExternal", server_ip, sizeof(server_ip));
+	if (server_ip[0])
+	{
+		server_port = trap_Cvar_VariableIntegerValue("net_port");
+		ip_out = va("^3IP: ^7%s:%i\n", server_ip, server_port);
+	}
+
+	trap_Cvar_VariableStringBuffer("mapname", mapName, sizeof(mapName));
+
+	CP(va("print \"\n^3Mod: ^7%s \n^3Server: ^7%s\n%s\"", GAMEVERSION, GetHostname(), ip_out ? ip_out : ""));
+	CP(va("print \"^3Map: ^7%s\n\"", mapName));
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
+	CP("print \"^7CN : Team : Name            : ^3LOC             ^7: Ping ^7: Fps  : Status\n\"");
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
+
+	for (j = 0; j <= (MAX_CLIENTS - 1); j++) {
+
+		if (g_entities[j].client && !(ent->r.svFlags & SVF_BOT)) {
+			char* team, * slot, * ip, * status, * adminTag, * ignoreStatus;
+			int ping, fps, uci;
+			char* countryLoc;
+			cl = g_entities[j].client;
+			//int countries;
+
+
+			// player is connecting
+			if (cl->pers.connected == CON_CONNECTING) {
+				CP(va("print \"%2i : >><< :                 : ^3>>Connecting<<  ^7:      : \n\"", j));
+				continue;
+			}
+
+			// player is connected
+			if (cl->pers.connected == CON_CONNECTED) {
+				status = "";
+				ignoreStatus = "";
+				slot = va("%2d", j);
+				adminTag = "";
+
+
+				/*	Elver2.0*/
+
+
+				uci = cl->sess.uci;  // geoip
+
+				for (i = 0; i < sizeof(countries); ++i) {
+					if (countries[i].id == uci) {
+						//if (!strcmp(countries[i].isoCode, isoCode)) {
+						countryLoc = countries[i].name;
+						break;
+					}
+				}
+
+
+				team = (cl->sess.sessionTeam == TEAM_SPECTATOR) ? "^3Spec^7" :
+					(cl->sess.sessionTeam == TEAM_RED ? "^1Axis^7" : "^4Ally^7");
+
+
+
+
+				ping = g_alternatePing.integer ? cl->pers.alternatePing : cl->ps.ping;
+				if (ping > 999) ping = 999;
+
+				fps = ClientGetFps(&cl->ps);
+
+				adminTag = getTag(&g_entities[j]);
+
+				if (cl->sess.admin > ADM_NONE && cl->sess.incognito)
+					adminTag = va("%s ^7*", adminTag);
+
+				switch (cl->sess.ignored) {
+				case IGNORE_OFF:
+					ignoreStatus = "";
+					break;
+				case IGNORE_PERMANENT:
+				case IGNORE_TEMPORARY:
+					ignoreStatus = "^3Ignored";
+					break;
+				}
+
+				if (COM_BitCheck(ent->client->sess.muted, cl - level.clients)) {
+					ignoreStatus = "^3Muted";
+				}
+
+
+
+				// Print it now
+				CP(va("print \"%-2s : %s : %s ^7: ^3%-15s ^7: %-4d ^7: %-4d : %-11s \n\"",
+					slot,
+					team,
+					TablePrintableColorName(cl->pers.netname, 15),
+					countryLoc,
+					ping,
+					fps,
+					status
+				));
+			}
+		}
+	}
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
+	CP(va("print \"Time  : ^3%s \n^7Uptime: ^3%d ^7day%s ^3%d ^7hours ^3%d ^7minutes\n\"", getDateTime(), days, (days != 1 ? "s" : ""), hours, mins));
+	CP("print \"\n\"");
+
+	return;
 }
 
 /*

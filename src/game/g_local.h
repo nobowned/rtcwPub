@@ -8,6 +8,7 @@
 #include "g_public.h"
 #include "g_stats.h"
 
+
 //==================================================================
 
 // the "gameversion" client command will print this plus compile date
@@ -499,6 +500,7 @@ typedef struct {
 	int			tempIgnoreCount;
 	int			secretlyDemoing;
 	int			muted[2];
+	unsigned int uci; //geoIP //Elver added
 } clientSession_t;
 
 #define PICKUP_ACTIVATE	0	// pickup items only when using "+activate"
@@ -542,6 +544,8 @@ typedef struct {
 
 	qboolean	teamInfo;			// send team overlay updates?
 
+
+	unsigned int uci;   // mcwf's GeoIP //Elver
 // L0 
 	// Server Bot
 	int		sb_pingHits;
@@ -1976,6 +1980,25 @@ void SB_maxTeamBleed(gentity_t *ent);
 void SB_minLowScore(gentity_t *ent);
 void SB_maxPingFlux(gclient_t *client);
 void SB_chatWarn(gentity_t *ent);
+
+//
+// g_geoip.c //Elver
+//
+
+typedef struct GeoIPTag {
+	fileHandle_t GeoIPDatabase;
+	unsigned char* cache;
+	unsigned int memsize;
+} GeoIP;
+
+unsigned long GeoIP_addr_to_num(const char* addr);
+unsigned int GeoIP_seek_record(GeoIP* gi, unsigned long ipnum);
+void GeoIP_open(void);
+void GeoIP_close(void);
+
+extern GeoIP* gidb;
+
+
 
 //
 // g_censored.c
