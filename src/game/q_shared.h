@@ -279,6 +279,8 @@ typedef int		clipHandle_t;
 
 #define MAX_SAY_TEXT		150
 
+#define MAX_IPV4_LENGTH		16
+
 #define PROTOCOL_VERSION_DEMO 50
 #define PROTOCOL_VERSION_1_0 57
 #define PROTOCOL_VERSION_1_3 59
@@ -1581,5 +1583,7 @@ char *Q_ChrReplace(char *haystack, char needle, char replacement);
 char *Q_StrReplace(char *haystack, char *needle, char *newp);
 qboolean Q_FindToken(char *haystack, char *needle);
 int Q_SanitizeClientTextInput(const char *in, char *out, int outSize, qboolean limit_spaces);
+int Q_GetPackedIpAddress(char* ip_address);
+char* Q_GetUnpackedIpAddress(int packed_ip_address, qboolean full);
 
 #endif	// __Q_SHARED_H

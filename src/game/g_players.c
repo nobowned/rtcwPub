@@ -19,7 +19,7 @@ Prints IP's and some match info..
 void Cmd_getStatus(gentity_t *ent) {
 	gclient_t *cl;
 	int	j;
-	char server_ip[16];
+	char server_ip[MAX_IPV4_LENGTH];
 	int server_port;
 	char *ip_out = NULL;
 	// uptime

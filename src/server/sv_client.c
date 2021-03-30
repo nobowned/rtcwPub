@@ -433,6 +433,9 @@ gotnewcl:
 	// save the userinfo
 	Q_strncpyz( newcl->userinfo, userinfo, sizeof( newcl->userinfo ) );
 
+	// save the geoip
+	Q_strncpyz(newcl->geoip_country_name, GeoIP_GetCountryName(clientNum), sizeof(newcl->geoip_country_name));
+
 	// get the game a chance to reject this connection or modify the userinfo
 	denied = (char *)VM_Call( gvm, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
 	if ( denied ) {

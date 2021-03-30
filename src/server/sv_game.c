@@ -130,6 +130,10 @@ void SV_GetClientIp(int clientNum, char *ip_out, int ip_out_length) {
 
 	cl = svs.clients + clientNum;
 	Q_strncpyz(ip_out, NET_AdrToString(cl->netchan.remoteAddress), ip_out_length);
+	char* port = strchr(ip_out, ':');
+	if (port) {
+		*port = 0;
+	}
 }
 
 /*
@@ -148,6 +152,31 @@ int SV_GetClientProtocol(int clientNum) {
 
 	cl = svs.clients + clientNum;
 	return cl->protocol;
+}
+
+/*
+===============
+SV_GetClientCountryName
+
+Called from game module to get a clients country name using the geoip database.
+===============
+*/
+void SV_GetClientCountryName(int clientNum, char *country_name, int country_name_length) {
+	client_t *cl;
+
+	extern qboolean geoip_database_initialized;
+
+	if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
+		return;
+	}
+
+	if (!geoip_database_initialized) {
+		country_name[0] = 0;
+		return;
+	}
+
+	cl = svs.clients + clientNum;
+	Q_strncpyz(country_name, cl->geoip_country_name, country_name_length);
 }
 
 /*
@@ -559,6 +588,9 @@ int SV_GameSystemCalls( int *args ) {
 		return SV_GetClientProtocol(args[1]);
 	case G_SET_CLIENT_NAME:
 		SV_SetClientName(args[1], VMA(2));
+		return 0;
+	case G_GET_CLIENT_COUNTRY_NAME:
+		SV_GetClientCountryName(args[1], VMA(2), args[3]);
 		return 0;
 	case G_LOG_TO_FILE:
 		SV_LogToFile(VMA(1), VMA(2));
