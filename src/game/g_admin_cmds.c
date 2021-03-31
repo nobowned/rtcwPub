@@ -1948,34 +1948,3 @@ void cmd_unpause(gentity_t *ent)
 	admLog(va("Player %s (IP: %s) un-paused the match.",
 		ent->client->pers.netname, clientIP(ent, qtrue)));
 }
-
-void cmd_listcountries(gentity_t *ent) {
-	int j;
-	gclient_t *cl;
-	char country_name[24];
-
-	trap_GetClientCountryName(ent->client - level.clients, country_name, sizeof(country_name));
-	if (!country_name[0]) {
-		CP("print \"Listing countries is currently disabled\n\"");
-		return;
-	}
-
-	CP("print \"^3--------------------------------------------------------------------------\n\"");
-	CP("print \"^7CN : Name                  : ^3Country                ^7: IP Address      \n\"");
-	CP("print \"^3--------------------------------------------------------------------------\n\"");
-
-	for (j = 0; j <= (MAX_CLIENTS - 1); j++) {
-		if (g_entities[j].client && !(ent->r.svFlags & SVF_BOT)) {
-			cl = g_entities[j].client;
-			if (cl->pers.connected == CON_CONNECTED) {
-				trap_GetClientCountryName(j, country_name, sizeof(country_name));
-				CP(va("print \"%2d : %s ^7: ^3%-22s ^7: %-15s \n\"", j, TablePrintableColorName(cl->pers.netname, 21), country_name, Q_GetUnpackedIpAddress(cl->sess.ip, qtrue)));
-			}
-		}
-	}
-
-	CP("print \"^3--------------------------------------------------------------------------\n\"");
-	CP("print \"\n\"");
-
-	return;
-}

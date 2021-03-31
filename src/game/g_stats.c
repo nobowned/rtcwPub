@@ -1192,28 +1192,9 @@ void stats_DisplayDailyStats(gentity_t *ent)
 
 	if (reset_ctime > 0) {
 		time_t current_ctime = time(NULL);
-		int minutes = (reset_ctime - current_ctime) / 60;
-		if (minutes < 0) {
-			minutes = 0;
-		}
-		int hours = minutes / 60;
-		minutes = minutes % 60;
-
-		char *hoursMsg = "";
-		if (hours > 0) {
-			hoursMsg = va("%d %s ", hours, (hours == 1) ? "hour" : "hours");
-		}
-
-		char *minutesMsg = "";
-		if (minutes > 0) {
-			minutesMsg = va("%d %s", minutes, (minutes == 1) ? "minute" : "minutes");
-		}
-
-		if (!hours && !minutes) {
-			hoursMsg = "a moment";
-		}
-
-		CP(va("print \"Stats reset in ^3%s%s\n\n\"", hoursMsg, minutesMsg));
+		int seconds_elapsed = reset_ctime - current_ctime;
+		char *time_message = GetTimeMessage(seconds_elapsed);
+		CP(va("print \"Stats reset in ^3%s\n\n\"", time_message));
 	}
 }
 

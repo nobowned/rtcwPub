@@ -264,7 +264,6 @@ typedef struct {
 } admin_cmd_t;
 
 static const admin_cmd_t admin_cmd_list[] = {
-	{ "countries", cmd_listcountries, "Lists the country of every player.", "!countries", "lc country list_countries location", qtrue },
 	{ "pause", cmd_pause, "Pauses the match.", "!pause" },
 	{ "unpause", cmd_unpause, "Un-pauses the match", "!unpause" },
 	{ "help", cmd_help, "Shows how to use a command", "!help <command>", "", qtrue },

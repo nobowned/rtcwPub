@@ -16,84 +16,71 @@ Getstatus
 Prints IP's and some match info..
 ===========
 */
-void Cmd_getStatus(gentity_t *ent) {
+void Cmd_GetStatus_f(gentity_t *ent) {
 	gclient_t *cl;
-	int	j;
+	int	client_num;
 	char server_ip[MAX_IPV4_LENGTH];
 	int server_port;
-	char *ip_out = NULL;
-	// uptime
-	int secs = level.time / 1000;
-	int mins = (secs / 60) % 60;
-	int hours = (secs / 3600) % 24;
-	int days = (secs / (3600 * 24));
+	char *server_ip_with_port = NULL;
+	char country_name[16];
 
 	trap_Cvar_VariableStringBuffer("sv_ipExternal", server_ip, sizeof(server_ip));
-	if (server_ip[0])
-	{
+	if (server_ip[0]) {
 		server_port = trap_Cvar_VariableIntegerValue("net_port");
-		ip_out = va("^3IP: ^7%s:%i\n", server_ip, server_port);
+		server_ip_with_port = va("^3IP: ^7%s:%i\n", server_ip, server_port);
 	}
 
-	CP(va("print \"\n^3Mod: ^7%s \n^3Server: ^7%s\n%s\"", GAMEVERSION, GetHostname(), ip_out ? ip_out : ""));
-	CP("print \"^3--------------------------------------------------------------------------\n\"");
-	CP("print \"^7CN : Team : Name            : ^3IP              ^7: Ping ^7: Fps  : Status\n\"");
-	CP("print \"^3--------------------------------------------------------------------------\n\"");
+	CP(va("print \"\n^3Mod: ^7%s \n^3Server: ^7%s\n%s\"", GAMEVERSION, GetHostname(), server_ip_with_port ? server_ip_with_port : ""));
+	CP("print \"^3-----------------------------------------------------------------------------\n\"");
+	CP("print \"^7CN : Name            : ^3IP              ^7: Country         : Ping ^7: Status     \n\"");
+	CP("print \"^3-----------------------------------------------------------------------------\n\"");
 
-	for (j = 0; j <= (MAX_CLIENTS - 1); j++) {
+	for (client_num = 0; client_num < MAX_CLIENTS; ++client_num) {
 
-		if (g_entities[j].client && !(ent->r.svFlags & SVF_BOT)) {
-			char *team, *slot, *ip, *status, *adminTag, *ignoreStatus;
-			int ping, fps;
-			cl = g_entities[j].client;
+		if (g_entities[client_num].client && !(ent->r.svFlags & SVF_BOT)) {
+			cl = g_entities[client_num].client;
 
 			// player is connecting
 			if (cl->pers.connected == CON_CONNECTING) {
-				CP(va("print \"%2i : >><< :                 : ^3>>Connecting<<  ^7:      : \n\"", j));
+				CP(va("print \"%-2d :                 : ^3>>Connecting<<  ^7:                 :      :       \n\"", client_num));
 				continue;
 			}
 
 			// player is connected
 			if (cl->pers.connected == CON_CONNECTED) {
-				status = "";
-				ignoreStatus = "";
-				slot = va("%2d", j);
-				adminTag = "";
+				char team_color = cl->sess.sessionTeam == TEAM_SPECTATOR ? COLOR_YELLOW : (cl->sess.sessionTeam == TEAM_RED ? COLOR_RED : COLOR_BLUE);
 
-				team = (cl->sess.sessionTeam == TEAM_SPECTATOR) ? "^3Spec^7" :
-					(cl->sess.sessionTeam == TEAM_RED ? "^1Axis^7" : "^4Ally^7");
+				char *ip = clientIP(&g_entities[client_num], (qboolean)(ent->client->sess.admin > ADM_NONE));
 
-				ip = clientIP(&g_entities[j], (qboolean)(ent->client->sess.admin > ADM_NONE));
+				trap_GetClientCountryName(client_num, country_name, sizeof(country_name));
 
-				ping = g_alternatePing.integer ? cl->pers.alternatePing : cl->ps.ping;
+				int ping = g_alternatePing.integer ? cl->pers.alternatePing : cl->ps.ping;
 				if (ping > 999) ping = 999;
 
-				fps = ClientGetFps(&cl->ps);
-
-				adminTag = getTag(&g_entities[j]);
-
+				char *adminTag = getTag(&g_entities[client_num]);
 				if (cl->sess.admin > ADM_NONE && cl->sess.incognito)
 					adminTag = va("%s ^7*", adminTag);
 
+				char *status = "";
 				switch (cl->sess.ignored) {
 				case IGNORE_OFF:
-					ignoreStatus = "";
+					status = "";
 					break;
 				case IGNORE_PERMANENT:
 				case IGNORE_TEMPORARY:
-					ignoreStatus = "^3Ignored";
+					status = "^3Ignored";
 					break;
 				}
 
 				if (COM_BitCheck(ent->client->sess.muted, cl - level.clients)) {
-					ignoreStatus = "^3Muted";
+					status = "^3Muted";
 				}
 
 				if (ent->client->sess.admin == ADM_NONE) {
-					status = strlen(ignoreStatus) ? ignoreStatus : (!cl->sess.incognito) ? adminTag : "";
+					status = strlen(status) ? status : (!cl->sess.incognito) ? adminTag : "";
 				} 
 				else if (ent->client->sess.admin != ADM_NONE) {
-					status = strlen(ignoreStatus) ? ignoreStatus : adminTag;
+					status = strlen(status) ? status : adminTag;
 				}
 
 				if (cl->sess.secretlyDemoing) {
@@ -106,21 +93,20 @@ void Cmd_getStatus(gentity_t *ent) {
 				}
 
 				// Print it now
-				CP(va("print \"%-2s : %s : %s ^7: ^3%-15s ^7: %-4d ^7: %-4d : %-11s \n\"",
-					slot,
-					team,
+				CP(va("print \"^%c%-2d ^7: %s ^7: ^3%-15s ^7: %-15s : %-4d ^7: %-11s\n\"",
+					team_color,
+					client_num,
 					TablePrintableColorName(cl->pers.netname, 15),
 					ip,
+					country_name,
 					ping,
-					fps,
 					status
 					));
 			}
 		}
 	}
-	CP("print \"^3--------------------------------------------------------------------------\n\"");
-	CP(va("print \"Time  : ^3%s \n^7Uptime: ^3%d ^7day%s ^3%d ^7hours ^3%d ^7minutes\n\"", getDateTime(), days, (days != 1 ? "s" : ""), hours, mins));
-	CP("print \"\n\"");
+	CP("print \"^3-----------------------------------------------------------------------------\n\"");
+	CP(va("print \"Time: ^3%s \n^7Use ^3/fps ^7to see each player's fps\n\"", getDateTime()));
 
 	return;
 }
@@ -204,7 +190,7 @@ void Touch_Knife(gentity_t *ent, gentity_t *other, trace_t *trace) {
 	ent->think = 0;
 }
 // Actual command
-void Cmd_throwKnives(gentity_t *ent) {
+void Cmd_ThrowKnives_f(gentity_t *ent) {
 	vec3_t velocity, angles, offset, org, mins, maxs;
 	trace_t tr;
 	gentity_t *ent2;
@@ -353,8 +339,8 @@ void Cmd_SendPrivateMessage_f(gentity_t *ent) {
 Shows time
 ================
 */
-void Cmd_Time(gentity_t *ent) {
-	CP(va("chat \"%s^7, the server time is ^3%s\n\"", ent->client->pers.netname, getDateTime()));
+void Cmd_Time_f(gentity_t *ent) {
+	CP(va("chat \"%s^7, the server time is ^3%s\"", ent->client->pers.netname, getDateTime()));
 	CPS(ent, "sound/multiplayer/dynamite_01.wav");
 }
 
@@ -365,7 +351,7 @@ Drag players
 Came from BOTW/S4NDMoD
 ===================
 */
-void Cmd_Drag(gentity_t *ent) {
+void Cmd_Drag_f(gentity_t *ent) {
 	gentity_t *target;
 	vec3_t start, dir, end;
 	trace_t tr;
@@ -413,7 +399,7 @@ L0 - Shove players away
 Ported from BOTW source.
 =================
 */
-void Cmd_Push(gentity_t* ent)
+void Cmd_Push_f(gentity_t* ent)
 {
 	gentity_t *target;
 	trace_t tr;
@@ -476,7 +462,7 @@ Drop objective
 Port from NQ
 =================
 */
-void Cmd_dropObj(gentity_t *self)
+void Cmd_DropObj_f(gentity_t *self)
 {
 	gitem_t *item = NULL;
 
@@ -528,7 +514,7 @@ void Cmd_dropObj(gentity_t *self)
 	}
 	else
 	{
-		Cmd_throwKnives(self);
+		Cmd_ThrowKnives_f(self);
 	}
 }
 
@@ -539,7 +525,7 @@ Stats command
 TODO: Unlazy my self and add targeted stats (victim, killer, <client number>)
 =================
 */
-void Cmd_Stats(gentity_t *ent) {
+void Cmd_Stats_f(gentity_t *ent) {
 	gclient_t *client = ent->client;
 	int eff;
 	int deaths = client->pers.deaths;

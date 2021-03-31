@@ -1887,6 +1887,7 @@ gentity_t *LaunchEntity(gentity_t *ent, vec3_t origin, vec3_t velocity, int owne
 char *GetHostname(void);
 gentity_t *FindRevivableTeammate(gentity_t *ent, int skip_num, vec3_t dir, vec3_t initial_start, vec3_t new_start, vec3_t end);
 void G_SetConstantLight(gentity_t *ent, int red, int green, int blue, int intensity);
+char *GetTimeMessage(int seconds);
 
 //
 // g_files.c
@@ -1928,16 +1929,15 @@ void CheckWeaponRestrictions(gclient_t *client);
 // 
 // g_players.c
 //
-void Cmd_getStatus(gentity_t *ent);
-void Cmd_throwKnives(gentity_t *ent);
+void Cmd_GetStatus_f(gentity_t *ent);
+void Cmd_ThrowKnives_f(gentity_t *ent);
 void Cmd_SendPrivateMessage_f(gentity_t *ent);
-void Cmd_Time(gentity_t *ent);
-void Cmd_Drag(gentity_t *ent);
-void Cmd_Push(gentity_t* ent);
-void Cmd_dropObj(gentity_t *self);
-void Cmd_Stats(gentity_t *ent);
+void Cmd_Time_f(gentity_t *ent);
+void Cmd_Drag_f(gentity_t *ent);
+void Cmd_Push_f(gentity_t* ent);
+void Cmd_DropObj_f(gentity_t *self);
+void Cmd_Stats_f(gentity_t *ent);
 void weapon_smokeGrenade(gentity_t *ent);
-void cmd_noReload(gentity_t *ent);
 void Cmd_Smoke(gentity_t *ent);
 
 //

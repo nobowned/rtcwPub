@@ -623,3 +623,28 @@ void G_SetConstantLight(gentity_t *ent, int red, int green, int blue, int intens
 {
 	ent->s.constantLight = red | (green << 8) | (blue << 16) | (intensity << 24);
 }
+
+char *GetTimeMessage(int seconds) {
+	int minutes = seconds / 60;
+	if (minutes < 0) {
+		minutes = 0;
+	}
+	int hours = minutes / 60;
+	minutes = minutes % 60;
+
+	char *hoursMsg = "";
+	if (hours > 0) {
+		hoursMsg = va("%d %s ", hours, (hours == 1) ? "hour" : "hours");
+	}
+
+	char *minutesMsg = "";
+	if (minutes > 0) {
+		minutesMsg = va("%d %s", minutes, (minutes == 1) ? "minute" : "minutes");
+	}
+
+	if (!hours && !minutes) {
+		hoursMsg = "a moment";
+	}
+
+	return va("%s%s", hoursMsg, minutesMsg);
+}

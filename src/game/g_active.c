@@ -1235,9 +1235,9 @@ gentity_t *G_DropWeapon(gentity_t *ent, trace_t *tr) {
 		if (client->ps.weapon == WP_KNIFE) {
 			if (client->ps.stats[STAT_HEALTH] > 0) {
 				if (g_dropObj.integer > 0)
-					Cmd_dropObj(ent);
+					Cmd_DropObj_f(ent);
 				else
-					Cmd_throwKnives(ent);
+					Cmd_ThrowKnives_f(ent);
 			}
 			return NULL;
 		}
@@ -1800,15 +1800,15 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	if (client->buttons & BUTTON_ACTIVATE) {
-		Cmd_Drag(ent);
+		Cmd_Drag_f(ent);
 	}
 
 	if (client->latched_buttons & BUTTON_GESTURE) {
-		Cmd_Push(ent);
+		Cmd_Push_f(ent);
 	}
 
 	if (client->buttons & BUTTON_GESTURE) {
-		Cmd_Drag(ent);
+		Cmd_Drag_f(ent);
 	}
 
 	if (ent->flags & FL_NOFATIGUE)

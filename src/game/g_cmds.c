@@ -3791,63 +3791,7 @@ void Cmd_ColorFlags_f(gentity_t *ent)
 	CP(va("print \"/color %d\n\"", result));
 }
 
-void Cmd_Ready_f(gentity_t *ent)
-{
-	if (!g_readySystem.integer)
-	{
-		return;
-	}
-	if (!g_readyPlayers.integer)
-	{
-		return;
-	}
-
-	// Disable ready
-	if (ent->client->pers.ready)
-	{
-		ent->client->pers.ready = qfalse;
-	}
-	// Enable ready
-	else
-	{
-		ent->client->pers.ready = qtrue;
-	}
-}
-
-void Cmd_ReadyList_f(gentity_t *ent)
-{
-#if 0
-	int i, ready_count, not_ready_count, remaining_ready_players;
-	gentity_t *target_ent;
-	gentity_t *ready_entities[MAX_CLIENTS];
-	gentity_t *not_ready_entities[MAX_CLIENTS];
-
-	if (!g_readySystem.integer)
-	{
-		return;
-	}
-
-	remaining_ready_players = g_readyPlayers.integer - level.ready_count;
-
-	if (remaining_ready_players <= 0)
-	{
-		CP("print \"\nAll players are ready.\n\"");
-	}
-
-	CP("print \"\n^1X = Not Ready. ^2O = Ready.\n\"");
-
-	for (i = 0; i < level.numPlayingClients; ++i)
-	{
-		target_ent = g_entities + level.sortedClients[i];
-		CP(va("print \"%s %s^7\n\"", target_ent->client->pers.ready ? "^2O" : "^1X", target_ent->client->pers.netname));
-	}
-
-	CP("print \"\n\"");
-#endif
-}
-
-void Cmd_ToggleDrawHitBoxes_f(gentity_t *ent)
-{
+void Cmd_ToggleDrawHitBoxes_f(gentity_t *ent) {
 	if (!g_drawHitboxes.integer) {
 		CP("cp \"g_drawHitboxes is disabled.\n\"");
 		return;
@@ -3857,64 +3801,53 @@ void Cmd_ToggleDrawHitBoxes_f(gentity_t *ent)
 }
 
 typedef struct fps_match {
-	int average_msec;
 	int client_num;
-} fps_match;
+	int average_msec;
+	int fps;
+} fps_match_t;
 
 int CompareFpsMatches(const void *fps_match1, const void *fps_match2) {
-	return ((fps_match *)fps_match1)->average_msec - ((fps_match *)fps_match2)->average_msec;
+	return ((fps_match_t *)fps_match1)->average_msec - ((fps_match_t *)fps_match2)->average_msec;
 }
 
 void Cmd_DisplayFps_f(gentity_t *ent) {
-	gentity_t *match;
-	int i, client_num, matches_less_or_equal_count, matches_greater_count, average_msec;
-	fps_match matches_less_or_equal[MAX_CLIENTS];
-	fps_match matches_greater[MAX_CLIENTS];
+	gentity_t *entity;
+	int i, client_num, fps_matches_count;
+	fps_match_t fps_matches[MAX_CLIENTS];
+	fps_match_t *fps_match;
 
-	matches_less_or_equal_count = 0;
-	matches_greater_count = 0;
+	fps_matches_count = 0;
 
 	for (i = 0; i < level.numConnectedClients; ++i) {
 		client_num = level.sortedClients[i];
-		match = g_entities + client_num;
-		average_msec = ClientGetMsec(&match->client->ps);
-		if (average_msec <= 3) {
-			matches_greater[matches_greater_count].client_num = client_num;
-			matches_greater[matches_greater_count].average_msec = average_msec;
-			matches_greater_count++;
-		} else {
-			matches_less_or_equal[matches_less_or_equal_count].client_num = client_num;
-			matches_less_or_equal[matches_less_or_equal_count].average_msec = average_msec;
-			matches_less_or_equal_count++;
+		entity = g_entities + client_num;
+		fps_match = fps_matches + fps_matches_count++;
+		fps_match->client_num = client_num;
+		fps_match->average_msec = ClientGetMsec(&entity->client->ps);
+		fps_match->fps = ClientGetFps(&entity->client->ps);
+	}
+
+	CP("print \"\n^3-----------------------------\n\"");
+	CP("print \"^7Name            : ^3Fps ^7: Msec \n\"");
+	CP("print \"^3-----------------------------\n\"");
+
+	if (fps_matches_count > 0) {
+		qsort(fps_matches, fps_matches_count, sizeof(fps_match_t), CompareFpsMatches);
+		for (i = 0; i < fps_matches_count; ++i) {
+			fps_match = fps_matches + i;
+			entity = g_entities + fps_match->client_num;
+			CP(va("print \"%s^7 : ^3%-3d ^7: %-3d\n\"", TablePrintableColorName(entity->client->pers.netname, 15), fps_match->fps, fps_match->average_msec));
 		}
 	}
 
-	CP(va("print \"\n^30-250 (%d):\n\"", matches_less_or_equal_count));
+	CP("print \"^3-----------------------------\n\"");
+}
 
-	if (matches_less_or_equal_count > 0) {
-		qsort(matches_less_or_equal, matches_less_or_equal_count, sizeof(fps_match), CompareFpsMatches);
-		for (i = 0; i < matches_less_or_equal_count; ++i) {
-			match = g_entities + matches_less_or_equal[i].client_num;
-			CP(va("print \"%s^7 [%d ms]\n\"", match->client->pers.netname, (int)matches_less_or_equal[i].average_msec));
-		}
-	}
-	else {
-		CP("print \"None\n\"");
-	}
-
-	CP(va("print \"\n^3251-1000 (%d):\n\"", matches_greater_count));
-
-	if (matches_greater_count > 0) {
-		qsort(matches_greater, matches_greater_count, sizeof(fps_match), CompareFpsMatches);
-		for (i = 0; i < matches_greater_count; ++i) {
-			match = g_entities + matches_greater[i].client_num;
-			CP(va("print \"%s^7 [%d ms]\n\"", match->client->pers.netname, (int)matches_greater[i].average_msec));
-		}
-	} else {
-		CP("print \"None\n\"");
-	}
-
-	CP("print \"\n\"");
+void Cmd_DisplayServerUptime_f(gentity_t *ent) {
+	int seconds_elapsed = level.time / 1000;
+	char *time_message = GetTimeMessage(seconds_elapsed);
+	CP(va("chat \"%s^7, the server has been online for ^3%s\"", ent->client->pers.netname, time_message));
+	CPS(ent, "sound/multiplayer/dynamite_01.wav");
 }
 
 #ifdef _DEBUG
@@ -4030,8 +3963,8 @@ static const player_command_t playerCommands[] = {
 	{ "dailystats ds", "Displays today's stats", "/dailystats", Cmd_DisplayDailyStats_f, qfalse },
 	{ "login @login", "Logs you in as an Administrator of the server. @login is silent.", "/login or /@login", cmd_login, qtrue },
 	{ "logout", "Logs you out and removes Administrator status", "/logout", cmd_logout, qtrue },
-	{ "getstatus gs", "Displays information about each player in the server, such as name and team", "", Cmd_getStatus, qtrue },
-	{ "stats s", "Displays your stats for the current round", "", Cmd_Stats, qtrue },
+	{ "getstatus gs", "Displays information about each player in the server, such as name and team", "", Cmd_GetStatus_f, qtrue },
+	{ "stats s", "Displays your stats for the current round", "", Cmd_Stats_f, qtrue },
 	{ "say_team", "Sends a message to all players on your team", "/say_team <message>", Cmd_SayTeam_f, qtrue },
 	{ "savelocation save", "Saves your current location for future 'loading'", "/save <any name>", Cmd_SaveLocation_f, qfalse },
 	{ "loadlocation load", "Loads a previously saved location", "/load <name of location>", Cmd_LoadLocation_f, qfalse },
@@ -4056,7 +3989,8 @@ static const player_command_t playerCommands[] = {
 	{ "mp40", "Sets the next weapon you'll spawn with to mp40", "", Cmd_SetMp40_f, qfalse },
 	{ "thompson", "Sets the next weapon you'll spawn with to thompson", "", Cmd_SetThompson_f, qfalse },
 	{ "sten", "Sets the next weapon you'll spawn with to sten", "", Cmd_SetSten_f, qfalse },
-	{ "time", "Displays the current server time", "", Cmd_Time, qfalse },
+	{ "time", "Displays the current server time", "", Cmd_Time_f, qfalse },
+	{ "uptime", "Shows server uptime", "", Cmd_DisplayServerUptime_f, qfalse },
 	{ "levelshot", "Takes a picture (cheat)", "", Cmd_LevelShot_f, qfalse },
 	{ "follow f", "Follows the given player", "/follow <player name>", Cmd_Follow_f, qfalse },
 	{ "followclient", "Follows the given player", "/follow <client number>", Cmd_FollowClient_f, qfalse },
@@ -4073,8 +4007,6 @@ static const player_command_t playerCommands[] = {
 	{ "smoke sg", "Throws smoke grenade (must be LT)", "/smoke or /sg", Cmd_Smoke, qfalse },
 	{ "draw_hitboxes" , "Toggles hitbox drawing when g_drawHitBoxes is enabled", "/draw_hitboxes", Cmd_ToggleDrawHitBoxes_f, qfalse },
 #ifdef _DEBUG
-	{ "ready_list", "List players that are ready and not ready", "/ready_list", Cmd_ReadyList_f, qfalse },
-	{ "ready", "Used to make yourself ready, or make you not ready by using it again (toggle).", "/ready", Cmd_Ready_f, qfalse },
 	{ "test", "Secrets!", "/test", Cmd_Test_f, qfalse },
 	{ "test2", "Moar Secrets!", "/test2", Cmd_Test2_f, qfalse },
 	{ "test3", "Moar Secrets!", "/test2", Cmd_Test3_f, qfalse },
