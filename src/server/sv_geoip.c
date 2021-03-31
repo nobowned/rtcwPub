@@ -273,7 +273,6 @@ const char country_names[GEOIP_MAX_COUNTRY_NAMES][GEOIP_COUNTRY_NAME_MAX_LEN] = 
 };
 
 geoip_database_t geoip_database;
-qboolean geoip_database_initialized;
 
 char *GeoIP_GetCountryName(int clientNum) {
 	int depth, packed_ip;
@@ -283,7 +282,7 @@ char *GeoIP_GetCountryName(int clientNum) {
 	char ip[MAX_IPV4_LENGTH];
 	static char country_name[GEOIP_COUNTRY_NAME_MAX_LEN];
 
-	if (!geoip_database_initialized) {
+	if (geoip_database.contents_size <= 0) {
 		return "";
 	}
 
@@ -299,7 +298,7 @@ char *GeoIP_GetCountryName(int clientNum) {
 		step = 6 * x;
 
 		if (step + 6 >= geoip_database.contents_size) {
-			Com_Printf("GeoIP: Error Traversing Database for ip %s (%i) - Perhaps database is corrupt?\n", ip, packed_ip);
+			Com_Printf("GeoIP_GetCountryName: Error traversing database for ip %s (%i)\n", ip, packed_ip);
 			return UNKNOWN_COUNTRY_NAME;
 		}
 
@@ -318,7 +317,7 @@ char *GeoIP_GetCountryName(int clientNum) {
 		}
 	}
 
-	Com_Printf("GeoIP: Error Traversing Database for ip %s (%i) - Perhaps database is corrupt?\n", ip, packed_ip);
+	Com_Printf("GeoIP_GetCountryName: Error traversing database for ip %s (%i)\n", ip, packed_ip);
 	return UNKNOWN_COUNTRY_NAME;
 }
 
@@ -327,13 +326,11 @@ void GeoIP_Initialize() {
 
 	geoip_database.contents_size = FS_FOpenFileRead("GeoIP.dat", &database_file_handle, FS_READ);
 	if (!database_file_handle) {
-		Com_Printf("GeoIP: Error opening database\n");
+		Com_Printf("GeoIP_Initialize: Error opening database\n");
 		return;
 	}
 
 	geoip_database.contents = (byte *)Z_Malloc(geoip_database.contents_size + 1);
 	FS_Read(geoip_database.contents, geoip_database.contents_size, database_file_handle);
 	FS_FCloseFile(database_file_handle);
-
-	geoip_database_initialized = geoip_database.contents_size > 0;
 }

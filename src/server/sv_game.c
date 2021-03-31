@@ -164,14 +164,7 @@ Called from game module to get a clients country name using the geoip database.
 void SV_GetClientCountryName(int clientNum, char *country_name, int country_name_length) {
 	client_t *cl;
 
-	extern qboolean geoip_database_initialized;
-
 	if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
-		return;
-	}
-
-	if (!geoip_database_initialized) {
-		country_name[0] = 0;
 		return;
 	}
 
