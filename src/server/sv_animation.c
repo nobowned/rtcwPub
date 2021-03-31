@@ -1,5 +1,5 @@
 //
-// sv_animatino.c
+// sv_animation.c
 //
 
 #include "server.h"

@@ -1668,6 +1668,7 @@ void trap_FreeEntityString(void);
 void trap_GetClientIp(int clientNum, char *ip_out, int ip_out_length);
 int trap_GetClientProtocol(int clientNum);
 void trap_SetClientName(int clientNum, char *name);
+void trap_GetClientCountryName(int clientNum, char* country_name, int country_name_length);
 void trap_LogToFile(char* q_path, char* message);
 void trap_CloseCommonLogFile();
 qboolean trap_CommonLogFileExists();
@@ -1886,8 +1887,6 @@ gentity_t *LaunchEntity(gentity_t *ent, vec3_t origin, vec3_t velocity, int owne
 char *GetHostname(void);
 gentity_t *FindRevivableTeammate(gentity_t *ent, int skip_num, vec3_t dir, vec3_t initial_start, vec3_t new_start, vec3_t end);
 void G_SetConstantLight(gentity_t *ent, int red, int green, int blue, int intensity);
-int G_GetPackedIpAddress(char *ip_address);
-char *G_GetUnpackedIpAddress(int packed_ip_address, qboolean full);
 
 //
 // g_files.c

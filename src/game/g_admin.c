@@ -251,26 +251,6 @@ gentity_t *GetClientEntity(gentity_t *ent, char *cNum, gentity_t **found)
 
 /*
 ===========
-Determine if admin level allows command
-===========
-*/
-qboolean HasPermission(gentity_t *ent, char *cmd, qboolean isCmd) {
-	if (ent->client->sess.admin == ADM_5 && a5_allowAll.integer && isCmd)
-		return qtrue;
-	if (!Q_stricmp(cmd, "commands"))
-		return qtrue;
-	if (!Q_stricmp(cmd, "help"))
-		return qtrue;
-	if (!Q_stricmp(cmd, "demoing"))
-		return qtrue;
-	if (Q_FindToken(getCommandList(ent), cmd))
-		return qtrue;
-
-	return qfalse;
-}
-
-/*
-===========
 Admin help
 ===========
 */
@@ -280,13 +260,15 @@ typedef struct {
 	char *help;
 	char *usage;
 	char *alt_commands;
+	qboolean any_admin_can_use;
 } admin_cmd_t;
 
-static const admin_cmd_t adminCmdOptions[] = {
-	{ "pause", cmd_pause, "Pauses the match.", "!pause", },
+static const admin_cmd_t admin_cmd_list[] = {
+	{ "countries", cmd_listcountries, "Lists the country of every player.", "!countries", "lc country list_countries location", qtrue },
+	{ "pause", cmd_pause, "Pauses the match.", "!pause" },
 	{ "unpause", cmd_unpause, "Un-pauses the match", "!unpause" },
-	{ "help", cmd_help, "Shows how to use a command", "!help <command>" },
-	{ "commands", cmd_listCmds, "Shows all available commands for your level.", NULL },
+	{ "help", cmd_help, "Shows how to use a command", "!help <command>", "", qtrue },
+	{ "commands", cmd_listCmds, "Shows all available commands for your level.", "!commands", "cmds", qtrue },
 	{ "ignore", cmd_ignore, "Takes player's ability to chat, use vsay or callvotes.", "!ignore <unique part of name>", "i" },
 	{ "unignore", cmd_unignore, "Restores player's ability to chat, use vsay or call votes.", "!unignore <unique part of name>", "ui" },
 	{ "clientignore", cmd_clientIgnore, "Takes player's ability to chat, callvotes or use vsay.", "!clientignore <client slot>", },
@@ -327,12 +309,12 @@ static const admin_cmd_t adminCmdOptions[] = {
 	{ "renameon", cmd_renameon, "Restores ability to rename from client.", "!renameon <client number>" },
 	{ "renameoff", cmd_renameoff, "Revokes ability to rename from client (lasts only that round).", "!renameoff <client number>" },
 	{ "forceteam", cmd_forceteam, "Forces player to specified team.", "!forceteam <unique part of name> <axis/allies/spec>" },
-	{ "forceclient", cmd_forceteam_client, "Forces player to specified team using client number.", "!forceteam <client number> <axis/allies/spec>" },
+	{ "forceclient", cmd_forceteam_client, "Forces player to specified team using client number.", "!forceclient <client number> <axis/allies/spec>" },
 	{ "sortclans", cmd_sortClans, "Sorts the two clans passed in.", "!sortclans <clan 1> <clan 2>", "sc" },
 	{ "cleardaily", cmd_clearDaily, "Clears the daily rankings", "!cleardaily", "clear_daily" },
 	{ "forceclan", cmd_forceClan, "Forces clan to the given team", "!forceclan <clan name> <r/axis/b/allies>", "fc" },
 	{ "start_match", cmd_startmatch, "Starts the match", "!start_match", "sm" },
-	{ "demoing", cmd_demoing, "Makes it so you can demo anonymously", "!demoing", "demo" },
+	{ "demoing", cmd_demoing, "Makes it so you can demo anonymously", "!demoing", "demo", qtrue },
 
 	// This must be last
 	{ NULL, NULL, NULL, NULL }
@@ -347,15 +329,22 @@ void cmd_listCmds(gentity_t *ent) {
 	char *list = getCommandList(ent);
 	const admin_cmd_t *cmd_option;
 
-	if (ent->client->sess.admin == 5 && a5_allowAll.integer) {
-		list = va("%s\n^5Additional server commands:^7\n", list);
-
-		for (cmd_option = adminCmdOptions; cmd_option->command != NULL; cmd_option++) {
+	list = va("%s\n\n^3Commands any admin level can use:^7\n", list);
+	for (cmd_option = admin_cmd_list; cmd_option->command != NULL; cmd_option++) {
+		if (cmd_option->any_admin_can_use) {
 			strcat(list, va("%s ", cmd_option->command));
 		}
 	}
 
-	CP(va("print \"^3Available commands are:^7\n%s\n^3Use !help <command> for help with using a command.\n\"", list));
+	if (ent->client->sess.admin == 5 && a5_allowAll.integer) {
+		list = va("%s\n\n^5Additional server commands allowed for level 5 admins:^7\n", list);
+
+		for (cmd_option = admin_cmd_list; cmd_option->command != NULL; cmd_option++) {
+			strcat(list, va("%s ", cmd_option->command));
+		}
+	}
+
+	CP(va("print \"^3Commands available at your admin level:^7\n%s\n\n^3Use !help <command> for help with using a command.\n\"", list));
 
 	return;
 }
@@ -378,9 +367,9 @@ qboolean do_cmds(gentity_t *ent, char *text) {
 	trap_Argv(0, cmd, sizeof(cmd));
 	memmove(cmd, cmd + 1, sizeof(cmd) - 1);
 
-	for (cmd_option = adminCmdOptions; cmd_option->command != NULL && cmd_option->execute != NULL; cmd_option++) {
+	for (cmd_option = admin_cmd_list; cmd_option->command != NULL && cmd_option->execute != NULL; cmd_option++) {
 		if (!Q_stricmp(cmd, cmd_option->command) || Q_FindToken(cmd_option->alt_commands, cmd)) {
-			if (HasPermission(ent, cmd, qtrue)) {
+			if (Q_FindToken(getCommandList(ent), cmd_option->command) || (ent->client->sess.admin == ADM_5 && a5_allowAll.integer) || cmd_option->any_admin_can_use) {
 				cmd_option->execute(ent);
 			}
 			else {
@@ -391,7 +380,7 @@ qboolean do_cmds(gentity_t *ent, char *text) {
 		}
 	}
 
-	if (HasPermission(ent, cmd, qfalse)) {
+	if (Q_FindToken(getCommandList(ent), cmd)) {
 		cmd_custom(ent, cmd);
 	}
 	else { 
@@ -417,7 +406,7 @@ void cmd_help(gentity_t *ent) {
 		return;
 	}
 
-	for (cmd_option = adminCmdOptions; cmd_option->command != NULL && cmd_option->execute != NULL; cmd_option++) {
+	for (cmd_option = admin_cmd_list; cmd_option->command != NULL && cmd_option->execute != NULL; cmd_option++) {
 		if (!Q_stricmp(cmd, cmd_option->command) || Q_FindToken(cmd_option->alt_commands, cmd)) {
 			CP(va("print \"^3%s %s %s %s\n\"",
 				va(cmd_option->usage ? "Help ^7:" : "Help^7:"),

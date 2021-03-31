@@ -922,6 +922,8 @@ void SV_Init( void ) {
 
 	SV_LoadModels();
 
+	GeoIP_Initialize();
+
 	// DHM - Nerve
 #ifdef UPDATE_SERVER
 	SV_Startup();

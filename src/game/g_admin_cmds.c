@@ -98,11 +98,6 @@ void cmd_unignore(gentity_t *ent) {
 
 	client = level.clients + clientNum;
 
-	if (client == ent->client && client->sess.ignored > IGNORE_OFF && (client->pers.sb_ignored >= sb_autoIgnore.integer || client->sess.tempIgnoreCount >= sb_maxTempIgnores.integer)) {
-		CP(va("cp \"Admins are ^1not exempt ^7from spam protection!\n\""));
-		return;
-	}
-
 	if (client->sess.ignored == IGNORE_OFF){
 		CP(va("print \"Player %s ^7is already unignored^1!\n\"", client->pers.netname));
 		return;
@@ -1467,7 +1462,7 @@ void cmd_tempBan_ip(gentity_t *ent) {
 		return;
 	}
 
-	packed_ip = G_GetPackedIpAddress(ip_address);
+	packed_ip = Q_GetPackedIpAddress(ip_address);
 	tag = sortTag(ent);
 
 	time = atoi(ban_duration_arg);
@@ -1496,7 +1491,7 @@ void cmd_tempBan_ip(gentity_t *ent) {
 		return;
 	}
 
-	AP(va("chat \"console: %s tempbanned ^3%s ^7for ^3%d ^7minutes^7!\n\"", tag, G_GetUnpackedIpAddress(packed_ip, qfalse), time));
+	AP(va("chat \"console: %s tempbanned ^3%s ^7for ^3%d ^7minutes^7!\n\"", tag, Q_GetUnpackedIpAddress(packed_ip, qfalse), time));
 
 	// Log it
 	log = va("Player %s (IP: %s) tempbanned IP %s for %d minutes.",
@@ -1952,4 +1947,35 @@ void cmd_unpause(gentity_t *ent)
 
 	admLog(va("Player %s (IP: %s) un-paused the match.",
 		ent->client->pers.netname, clientIP(ent, qtrue)));
+}
+
+void cmd_listcountries(gentity_t *ent) {
+	int j;
+	gclient_t *cl;
+	char country_name[24];
+
+	trap_GetClientCountryName(ent->client - level.clients, country_name, sizeof(country_name));
+	if (!country_name[0]) {
+		CP("print \"Listing countries is currently disabled\n\"");
+		return;
+	}
+
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
+	CP("print \"^7CN : Name                  : ^3Country                ^7: IP Address      \n\"");
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
+
+	for (j = 0; j <= (MAX_CLIENTS - 1); j++) {
+		if (g_entities[j].client && !(ent->r.svFlags & SVF_BOT)) {
+			cl = g_entities[j].client;
+			if (cl->pers.connected == CON_CONNECTED) {
+				trap_GetClientCountryName(j, country_name, sizeof(country_name));
+				CP(va("print \"%2d : %s ^7: ^3%-22s ^7: %-15s \n\"", j, TablePrintableColorName(cl->pers.netname, 21), country_name, Q_GetUnpackedIpAddress(cl->sess.ip, qtrue)));
+			}
+		}
+	}
+
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
+	CP("print \"\n\"");
+
+	return;
 }

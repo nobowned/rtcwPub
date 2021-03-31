@@ -1442,7 +1442,7 @@ void SaveIP_f(gclient_t *client, char *sip)
 		return;
 	}
 
-	client->sess.ip = G_GetPackedIpAddress(sip);
+	client->sess.ip = Q_GetPackedIpAddress(sip);
 }
 
 /*
@@ -1455,7 +1455,7 @@ char *clientIP(gentity_t *ent, qboolean full)
 	if (ent->r.svFlags & SVF_BOT)
 		return "bot";
 
-	return G_GetUnpackedIpAddress(ent->client->sess.ip, full);
+	return Q_GetUnpackedIpAddress(ent->client->sess.ip, full);
 }
 
 /*
@@ -1482,7 +1482,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	char	*c1;
 	char	userinfo[MAX_INFO_STRING];
 	char	*result;
-	char	ip[MAX_STRING_TOKENS];
+	char	ip[MAX_IPV4_LENGTH];
 
 	ent = g_entities + clientNum;
 	client = ent->client;
@@ -1768,8 +1768,7 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	gentity_t	*ent;
 	int			i;
 	char		*result;
-	char	ip[21];
-	char	ip_without_port[16];
+	char	ip[MAX_IPV4_LENGTH];
 
 	ent = &g_entities[ clientNum ];
 
@@ -1797,19 +1796,12 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	// L0 - Banned & Tempbanned
 	if (firstTime && !isBot)
 	{
-		Q_strncpyz(ip_without_port, ip, sizeof(ip_without_port));
-		char *port = strchr(ip_without_port, ':');
-		if (port)
-		{
-			*port = 0;
-		}
-
-		if (IsBanned(ip_without_port, value))
+		if (IsBanned(ip, value))
 		{
 			return bannedMSG.string;
 		}
 
-		result = IsTempBanned(ip_without_port);
+		result = IsTempBanned(ip);
 		if (result)
 		{
 			return result;

@@ -85,5 +85,6 @@ void cmd_startmatch(gentity_t *ent);
 void cmd_demoing(gentity_t *ent);
 void cmd_pause(gentity_t *ent);
 void cmd_unpause(gentity_t *ent);
+void cmd_listcountries(gentity_t *ent);
 
 #endif // __ADMIN_H

@@ -1647,3 +1647,30 @@ int Q_SanitizeClientTextInput(const char *in, char *out, int outSize, qboolean l
 
 	return colorlessLen;
 }
+
+/*
+===========
+Q_GetPackedIpAddress
+============
+*/
+int Q_GetPackedIpAddress(char* ip_address) {
+	int ip[4];
+
+	sscanf(ip_address, "%3i.%3i.%3i.%3i", &ip[0], &ip[1], &ip[2], &ip[3]);
+	return ((ip[3] << 0) | (ip[2] << 8) | (ip[1] << 16) | (ip[0] << 24));
+}
+
+/*
+===========
+Q_GetUnpackedIpAddress
+============
+*/
+char* Q_GetUnpackedIpAddress(int packed_ip_address, qboolean full) {
+	byte* octets;
+
+	octets = (byte*)(&packed_ip_address);
+
+	return full ?
+		va("%i.%i.%i.%i", (int)octets[3], (int)octets[2], (int)octets[1], (int)octets[0]) :
+		va("%i.%i.*.*", (int)octets[3], (int)octets[2]);
+}

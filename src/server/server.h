@@ -44,6 +44,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #define MAX_FRAME_TIME_SAMPLES 10
 
+#define GEOIP_MAX_COUNTRY_NAMES 256
+#define GEOIP_COUNTRY_NAME_MAX_LEN 255
+
 typedef struct svEntity_s {
 	struct worldSector_s *worldSector;
 	struct svEntity_s *nextEntityInWorldSector;
@@ -186,6 +189,8 @@ typedef struct client_s {
 	// buffer them into this queue, and hand them out to netchan as needed
 	netchan_buffer_t *netchan_start_queue;
 	netchan_buffer_t **netchan_end_queue;
+	
+	char geoip_country_name[GEOIP_COUNTRY_NAME_MAX_LEN];
 } client_t;
 
 //=============================================================================
@@ -539,3 +544,9 @@ void SV_SendGlobalStats(char *stats_data);
 qboolean SV_GlobalStatsConnect(void);
 void SV_GlobalStatsDisconnect(void);
 void SV_GlobalStatsReconnect(void);
+
+//
+// sv_geoip.c
+//
+char* GeoIP_GetCountryName(int clientNum);
+void GeoIP_Initialize();

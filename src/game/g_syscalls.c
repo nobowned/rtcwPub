@@ -258,6 +258,10 @@ void trap_SetClientName(int clientNum, char *name) {
 	syscall(G_SET_CLIENT_NAME, clientNum, name);
 }
 
+void trap_GetClientCountryName(int clientNum, char* country_name, int country_name_length) {
+	syscall(G_GET_CLIENT_COUNTRY_NAME, clientNum, country_name, country_name_length);
+}
+
 void trap_LogToFile(char* q_path, char* message) {
 	syscall(G_LOG_TO_FILE, q_path, message);
 }

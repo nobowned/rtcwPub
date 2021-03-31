@@ -623,20 +623,3 @@ void G_SetConstantLight(gentity_t *ent, int red, int green, int blue, int intens
 {
 	ent->s.constantLight = red | (green << 8) | (blue << 16) | (intensity << 24);
 }
-
-int G_GetPackedIpAddress(char *ip_address) {
-	int ip[4];
-
-	sscanf(ip_address, "%3i.%3i.%3i.%3i", &ip[0], &ip[1], &ip[2], &ip[3]);
-	return ((ip[0] << 0) | (ip[1] << 8) | (ip[2] << 16) | (ip[3] << 24));
-}
-
-char *G_GetUnpackedIpAddress(int packed_ip_address, qboolean full) {
-	byte *octets;
-
-	octets = (byte *)(&packed_ip_address);
-
-	return full ?
-		va("%i.%i.%i.%i", (int)octets[0], (int)octets[1], (int)octets[2], (int)octets[3]) :
-		va("%i.%i.*.*", (int)octets[0], (int)octets[1]);
-}

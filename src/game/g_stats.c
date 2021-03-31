@@ -1165,7 +1165,7 @@ void stats_DisplayDailyStats(gentity_t *ent)
 
 		CP(va("print \"^3%4d ^3| ^7%s ^3| %s%-11s ^3| %s%-7d ^3| %s%-7d ^3| %s%-7d ^3| %s%-6.2f\n\"",
 			(i + 1), TablePrintableColorName(player->name, 15),
-			statcolor, G_GetUnpackedIpAddress(player->ip, qfalse),
+			statcolor, Q_GetUnpackedIpAddress(player->ip, qfalse),
 			statcolor, player->kills,
 			statcolor, player->deaths,
 			statcolor, player->revives,
