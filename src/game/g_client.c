@@ -1460,6 +1460,81 @@ char *clientIP(gentity_t *ent, qboolean full)
 
 /*
 ===========
+Userinfo_Validate
+
+Validates userinfo string coming from clients.
+Returns error message if the userinfo string is invalid.
+============
+*/
+char *Userinfo_Validate(const char *s) {
+#define MAX_USERINFO_KEYS 256
+	char userinfo_copy[MAX_INFO_STRING];
+	char *userinfo_keys[MAX_USERINFO_KEYS];
+	char *end, *start;
+	int key_value_count, userinfo_keys_count, i, j;
+
+	if (!s || !s[0]) {
+		return "Userinfo is empty.";
+	}
+
+	if (strlen(s) >= MAX_INFO_STRING) {
+		return "Userinfo too large.";
+	}
+
+	if (strchr(s, ';') || strchr(s, '\"')) {
+		return "Userinfo contains invalid characters.";
+	}
+
+	Q_strncpyz(userinfo_copy, s, sizeof(userinfo_copy));
+	key_value_count = userinfo_keys_count = 0;
+	start = userinfo_copy;
+	if (start[0] == '\\') {
+		start++;
+	}
+
+	while ((end = strchr(start, '\\')) != NULL || (end = strchr(start, '\0')) != NULL) {
+		if (*start == '\0') {
+			break;
+		}
+		if (key_value_count++ % 2 == 0) {
+			userinfo_keys[userinfo_keys_count++] = start;
+		}
+		if (*end == '\0') {
+			break;
+		}
+		*end = 0;
+		start = end + 1;
+	}
+
+	if (key_value_count == 0) {
+		return "Userinfo is empty.";
+	}
+
+	if (key_value_count % 2 != 0) {
+		return "Userinfo key/value count mismatch.";
+	}
+
+	for (i = 0; i < userinfo_keys_count; ++i) {
+		char *key = userinfo_keys[i];
+
+		for (j = 0; j < userinfo_keys_count; ++j) {
+			if (i == j) {
+				continue;
+			}
+
+			char *check = userinfo_keys[j];
+
+			if (Q_stricmp(key, check) == 0) {
+				return va("Duplicate key '%s' in info.", key);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/*
+===========
 ClientUserInfoChanged
 
 Called from ClientConnect when the player first connects and
@@ -1493,7 +1568,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 	trap_GetClientIp(clientNum, ip, sizeof(ip));
 
-	result = Info_Validate(userinfo);
+	result = Userinfo_Validate(userinfo);
 	if (result) {
 		trap_LogToFile(CRITICALLOG, va("Time: %s (%d)\nPlayer IP: %s\n%s Userinfo:\n%s%s", getDateTime(), level.time, ip, result, userinfo, LOGLINE));
 		trap_DropClient(clientNum, result);
@@ -1775,7 +1850,7 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 	trap_GetClientIp(clientNum, ip, sizeof(ip));
 
-	result = Info_Validate(userinfo);
+	result = Userinfo_Validate(userinfo);
 	if (result) {
 		trap_LogToFile(CRITICALLOG, va("Time: %s (%d)\nPlayer IP: %s\n%s Userinfo:\n%s%s", getDateTime(), level.time, ip, result, userinfo, LOGLINE));
 		return va("%s\n", result);
