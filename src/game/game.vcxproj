@@ -92,6 +92,9 @@
       <ImportLibrary>.\Debug/qagame_mp_x86.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+	<PreBuildEvent>
+      <Command>IF NOT EXIST "$(TargetDir)..\..\main" MKDIR "$(TargetDir)..\..\main"</Command>
+	</PreBuildEvent>
     <PostBuildEvent>
       <Command>xcopy /Y /S "$(TargetDir)..\..\..\assets\server\main" "$(TargetDir)..\..\main"</Command>
     </PostBuildEvent>
