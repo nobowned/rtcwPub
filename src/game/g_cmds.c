@@ -62,7 +62,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 			}
 		}
 
-		score = g_ffa.integer ? cl->pers.kills : cl->ps.persistant[PERS_SCORE];
+		score = g_ffa.integer ? cl->pers.stats.kills : cl->ps.persistant[PERS_SCORE];
 
 		Com_sprintf (entry, sizeof(entry),
 			" %i %i %i %i %i %i %i %i", level.sortedClients[i],
@@ -543,8 +543,8 @@ void Cmd_Gib_f( gentity_t *ent ) {
 		player_die(ent, attacker, attacker, (ent->health + 100000), MOD_CHICKEN);
 
 		// Stats
-		ent->client->pers.suicides++;
-		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.suicides, ROUND_SUICIDES);
+		ent->client->pers.stats.suicides++;
+		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.stats.suicides, ROUND_SUICIDES);
 
 		return;
 	}
@@ -559,8 +559,8 @@ void Cmd_Gib_f( gentity_t *ent ) {
 	}
 
 	if (ent->client->ps.pm_type != PM_DEAD) {
-		ent->client->pers.suicides++;
-		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.suicides, ROUND_SUICIDES);
+		ent->client->pers.stats.suicides++;
+		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.stats.suicides, ROUND_SUICIDES);
 	}
 
 	G_Damage(ent, ent, ent, NULL, NULL, 10000, DAMAGE_NO_PROTECTION, MOD_SELFKILL);
@@ -601,8 +601,8 @@ void Cmd_Kill_f(gentity_t *ent) {
 		player_die(ent, attacker, attacker, ent->health, MOD_CHICKEN);
 
 		// Stats
-		ent->client->pers.suicides++;
-		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.suicides, ROUND_SUICIDES);
+		ent->client->pers.stats.suicides++;
+		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.stats.suicides, ROUND_SUICIDES);
 		return;
 	}
 
@@ -612,8 +612,8 @@ void Cmd_Kill_f(gentity_t *ent) {
 	player_die(ent, ent, ent, 100000, MOD_SELFKILL);   // L0 - Kill but not gib...
 
 	// L0 - Stats
-	ent->client->pers.suicides++;
-	stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.suicides, ROUND_SUICIDES);
+	ent->client->pers.stats.suicides++;
+	stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.stats.suicides, ROUND_SUICIDES);
 }
 
 /*
@@ -3180,16 +3180,6 @@ void Cmd_DisplayMaps_f(gentity_t *ent)
 	}
 }
 
-void Cmd_DisplayDailyRanking_f(gentity_t *ent)
-{
-	if (!g_dailystats.integer) {
-		CP("print \"Daily stats are currently disabled\n\"");
-		return;
-	}
-
-	stats_DisplayDailyRanking(ent);
-}
-
 void Cmd_DisplayDailyStats_f(gentity_t *ent)
 {
 	if (!g_dailystats.integer) {
@@ -4116,7 +4106,6 @@ static const player_command_t playerCommands[] = {
 	{ "unmute_all", "Unmutes every muted client number", "", Cmd_UnmuteAll_f, qfalse },
 	{ "commands", "Displays a list of server commands", "", Cmd_ListCommands_f, qtrue },
 	{ "help!", "Displays help documentation for a command", "/help! <command>", Cmd_HelpDocs_f, qtrue },
-	{ "dailyrank da", "Displays your daily rank", "/dailyrank", Cmd_DisplayDailyRanking_f, qfalse },
 	{ "dailystats ds", "Displays today's stats", "/dailystats", Cmd_DisplayDailyStats_f, qfalse },
 	{ "login @login", "Logs you in as an Administrator of the server. @login is silent.", "/login or /@login", cmd_login, qtrue },
 	{ "logout", "Logs you out and removes Administrator status", "/logout", cmd_logout, qtrue },

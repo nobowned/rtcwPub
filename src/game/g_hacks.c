@@ -247,14 +247,14 @@ void print_mod(gentity_t *attacker, gentity_t *self, int meansOfDeath){
 		}
 		else if (meansOfDeath == MOD_POISONDMED){		//WAS means of death == 1001
 			message = "was poisoned by";
-			attacker->client->pers.poison++;
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.poison, ROUND_POISON);
+			attacker->client->pers.stats.poison++;
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.poison, ROUND_POISON);
 		}
 		else if (meansOfDeath == MOD_THROWKNIFE){		// WAS meansOfDeath == 1003
 			message = "was impaled by";
 			message2 = "'s throwing knife";
-			attacker->client->pers.knifeKills++;
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.knifeKills, ROUND_KNIFETHROW);
+			attacker->client->pers.stats.knifeKills++;
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.knifeKills, ROUND_KNIFETHROW);
 		}
 		else if (meansOfDeath == MOD_FALLING){
 			message = "was pushed by";
@@ -269,11 +269,11 @@ void print_mod(gentity_t *attacker, gentity_t *self, int meansOfDeath){
 			message = "was scared to death by";
 			message2 = "";
 
-			self->client->pers.chicken++;
-			stats_StoreRoundStat(self->client->pers.netname, self->client->pers.chicken, ROUND_CHICKEN);
-			attacker->client->pers.kills++;
+			self->client->pers.stats.chicken++;
+			stats_StoreRoundStat(self->client->pers.netname, self->client->pers.stats.chicken, ROUND_CHICKEN);
+			attacker->client->pers.stats.kills++;
 			attacker->client->pers.lifeKills++;
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.kills, ROUND_KILLS);
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.kills, ROUND_KILLS);
 			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.lifeKills, ROUND_KILLPEAK);
 		}
 		else{

@@ -15,7 +15,7 @@ Kicks for teamkills
 ===========
 */
 void SB_maxTeamKill(gentity_t *ent) {
-	int count = ent->client->pers.teamKills - ent->client->pers.sb_TKforgiven;
+	int count = ent->client->pers.stats.teamKills - ent->client->pers.sb_TKforgiven;
 
 	if (level.warmupTime || !sb_system.integer || sb_maxTKs.integer < 0)
 	{
@@ -42,7 +42,7 @@ void SB_maxTeamBleed(gentity_t *ent) {
 	if (level.warmupTime || !sb_system.integer || sb_maxTeamBleed.integer < 0)
 		return;
 
-	int count = ent->client->pers.dmgTeam;
+	int count = ent->client->pers.stats.dmgTeam;
 	int tempban = sb_maxTeamBleedTempbanMins.integer;
 
 	if ((sb_maxTeamBleed.integer - count) <= 50 && !ent->client->pers.sb_TBwarned) {

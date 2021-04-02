@@ -2055,8 +2055,8 @@ void ClientBegin( int clientNum ) {
 	client->pers.lastrevive_client = -1;
 	client->pers.lastkiller_client = -1;
 	// Stats
-	client->pers.dmgGiven = 0;
-	client->pers.dmgReceived = 0;
+	client->pers.stats.dmgGiven = 0;
+	client->pers.stats.dmgReceived = 0;
 	client->pers.spreeDeaths = 0;
 	// If temporarily ignored clear here (every map load or team change)
 	if (client->sess.ignored == IGNORE_TEMPORARY) {

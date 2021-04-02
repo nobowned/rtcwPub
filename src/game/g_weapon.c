@@ -412,17 +412,17 @@ void Weapon_Syringe(gentity_t *ent) {
 				traceEnt->client->pers.lastrevive_client = ent->s.clientNum;
 
 				AddScore(ent, WOLF_MEDIC_BONUS); // JPW NERVE props to the medic for the swift and dexterous bit o healitude
-				ent->client->pers.revives++;
+				ent->client->pers.stats.revives++;
 				ent->client->pers.lifeRevives++;
 				if (traceEnt->client->pers.last_means_of_death != MOD_SELFKILL &&
 					traceEnt->client->pers.lastkiller_client != ent->client->ps.clientNum) {
 					ent->client->pers.give_life_revives++;
 				}
 
-				stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.revives, ROUND_REVIVES);
+				stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.stats.revives, ROUND_REVIVES);
 
 				if (g_mapStats.integer == 5)
-					stats_StoreMapStat(ent, ent->client->pers.revives, MAP_REVIVES);
+					stats_StoreMapStat(ent, ent->client->pers.stats.revives, MAP_REVIVES);
 
 				if (ent->client->pers.sb_TKkillTime > level.time && sb_system.integer && sb_maxTKs.integer)
 				{
@@ -2068,7 +2068,7 @@ void Bullet_Fire_Extended(gentity_t *source, gentity_t *attacker, vec3_t start, 
 	}
 
 	if (LogAccuracyShot(traceEnt, source)) {
-		source->client->pers.acc_shots++;
+		source->client->pers.stats.acc_shots++;
 		source->client->pers.lifeAcc_shots++;
 	}
 
@@ -2114,7 +2114,7 @@ void Bullet_Fire_Extended(gentity_t *source, gentity_t *attacker, vec3_t start, 
 		if( LogAccuracyHit( traceEnt, attacker ) ) {
 			attacker->client->ps.persistant[PERS_ACCURACY_HITS]++;
 			// L0 - Stats
-			attacker->client->pers.acc_hits++;
+			attacker->client->pers.stats.acc_hits++;
 			attacker->client->pers.lifeAcc_hits++;
 		}
 

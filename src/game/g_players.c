@@ -528,18 +528,18 @@ TODO: Unlazy my self and add targeted stats (victim, killer, <client number>)
 void Cmd_Stats_f(gentity_t *ent) {
 	gclient_t *client = ent->client;
 	int eff;
-	int deaths = client->pers.deaths;
-	float killRatio = client->pers.kills;
-	int shots = client->pers.acc_shots;
+	int deaths = client->pers.stats.deaths;
+	float killRatio = client->pers.stats.kills;
+	int shots = client->pers.stats.acc_shots;
 	float acc = 0.0f;
 
 	if (deaths > 0)
-		killRatio = (float)client->pers.kills / (float)deaths;
+		killRatio = (float)client->pers.stats.kills / (float)deaths;
 
 	if (shots > 0)
-		acc = ((float)client->pers.acc_hits / (float)shots) * 100.0f;
+		acc = ((float)client->pers.stats.acc_hits / (float)shots) * 100.0f;
 
-	eff = (client->pers.deaths + client->pers.kills == 0) ? 0 : 100 * client->pers.kills / (client->pers.deaths + client->pers.kills);
+	eff = (client->pers.stats.deaths + client->pers.stats.kills == 0) ? 0 : 100 * client->pers.stats.kills / (client->pers.stats.deaths + client->pers.stats.kills);
 	if (eff < 0) {
 		eff = 0;
 	}
@@ -562,11 +562,11 @@ void Cmd_Stats_f(gentity_t *ent) {
 		sv_hostname.string,
 		getDateTime(),
 		client->pers.netname,
-		client->pers.kills, client->pers.teamKills, client->pers.poison,
-		deaths, client->pers.suicides, client->pers.gibs,
-		client->pers.revives, client->pers.medPacks, client->pers.ammoPacks,
-		client->pers.dmgGiven, client->pers.dmgReceived, client->pers.dmgTeam,
-		client->pers.headshots, acc, client->pers.acc_hits, shots,
+		client->pers.stats.kills, client->pers.stats.teamKills, client->pers.stats.poison,
+		deaths, client->pers.stats.suicides, client->pers.stats.gibs,
+		client->pers.stats.revives, client->pers.stats.medPacks, client->pers.stats.ammoPacks,
+		client->pers.stats.dmgGiven, client->pers.stats.dmgReceived, client->pers.stats.dmgTeam,
+		client->pers.stats.headshots, acc, client->pers.stats.acc_hits, shots,
 		eff, killRatio
 		));
 }

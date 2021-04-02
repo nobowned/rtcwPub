@@ -205,7 +205,7 @@ void stats_KillingSprees(gentity_t *ent)
 		return;
 	}
 
-	player_kills = ent->client->pers.kills;
+	player_kills = ent->client->pers.stats.kills;
 
 	if (player_kills == 0)
 	{
@@ -224,7 +224,7 @@ void stats_KillingSprees(gentity_t *ent)
 
 		ks = &killingSprees[snd_idx];
 
-		AP(va("chat \"^5%s ^5(^7%dk, %dhs^5)^7: %s\n\"", ks->msg, player_kills, ent->client->pers.headshots, ent->client->pers.netname));
+		AP(va("chat \"^5%s ^5(^7%dk, %dhs^5)^7: %s\n\"", ks->msg, player_kills, ent->client->pers.stats.headshots, ent->client->pers.netname));
 
 		for (i = 0; i < level.maxclients; i++)
 		{
@@ -289,19 +289,26 @@ EOM (End of Match) stats
 void stats_MatchInfo(void) {
 	int i, j, r, cnt, teamcnt;
 	float tot_acc = 0.00f;
-	int tot_kills, tot_deaths, tot_gp, tot_hs, tot_gib, tot_tk, tot_dg, tot_dr, tot_td, tot_hits, tot_shots, tot_revives;
+	int tot_kills, tot_deaths, tot_hs, tot_gib, tot_tk, tot_dg, tot_dr, tot_td, tot_hits, tot_shots, tot_revives;
 	gclient_t *cl;
 	gentity_t *ent;
 	char *statcolor;
+	char cs[MAX_INFO_STRING];
+	qboolean is_winning_team;
 
 	AP(va("print \"\nMod: %s \n^7Server: %s  \n^7Time: ^3%s\n\n\"",
 		GAMEVERSION, GetHostname(), getDateTime()));
+
+	trap_GetConfigstring(CS_MULTI_MAPWINNER, cs, sizeof(cs));
+	team_t winning_team = Info_ValueForKey(cs, "winner") == "0" ? TEAM_RED : TEAM_BLUE;
 
 	cnt = 0;
 	for (i = TEAM_RED; i <= TEAM_BLUE; i++) {
 		if (!TeamCount(-1, i)) {
 			continue;
 		}
+
+		is_winning_team = winning_team == i;
 
 		tot_kills = 0;
 		tot_deaths = 0;
@@ -311,16 +318,16 @@ void stats_MatchInfo(void) {
 		tot_dg = 0;
 		tot_dr = 0;
 		tot_td = 0;
-		tot_gp = 0;
 		tot_hits = 0;
 		tot_shots = 0;
 		tot_acc = 0;
 		tot_revives = 0;
 
-		AP(va("print \"%s ^7Team\n"
+		AP(va("print \"%s%s ^7Team%s\n"
 			"^3-----------------------------------------------------------------------------\n"
 			"^3Player Name          ^3: ^3K   D   G   TK  R   ^3: ^3Acc    HS  ^3: ^3DG     DR     TD   \n"
-			"^3-----------------------------------------------------------------------------\n\"", (i == TEAM_RED) ? "^1Axis" : "^4Allies"));
+			"^3-----------------------------------------------------------------------------\n\"", 
+			is_winning_team ? va("^3* ", 20, 18) : "", (i == TEAM_RED) ? "^1Axis" : "^4Allies", is_winning_team ? va(" ^3*", 20, 18) : ""));
 
 		for (teamcnt = 0, j = 0; j < level.numPlayingClients; j++) {
 			cl = level.clients + level.sortedClients[j];
@@ -329,20 +336,19 @@ void stats_MatchInfo(void) {
 				continue;
 			}
 
-			tot_kills += cl->pers.kills;
-			tot_deaths += cl->pers.deaths;
-			tot_gib += cl->pers.gibs;
-			tot_tk += cl->pers.teamKills;
-			tot_hs += cl->pers.headshots;
-			tot_dg += cl->pers.dmgGiven;
-			tot_dr += cl->pers.dmgReceived;
-			tot_td += cl->pers.dmgTeam;
-			tot_gp += cl->ps.persistant[PERS_SCORE];
-			tot_hits += cl->pers.acc_hits;
-			tot_shots += cl->pers.acc_shots;
-			tot_revives += cl->pers.revives;
+			tot_kills += cl->pers.stats.kills;
+			tot_deaths += cl->pers.stats.deaths;
+			tot_gib += cl->pers.stats.gibs;
+			tot_tk += cl->pers.stats.teamKills;
+			tot_hs += cl->pers.stats.headshots;
+			tot_dg += cl->pers.stats.dmgGiven;
+			tot_dr += cl->pers.stats.dmgReceived;
+			tot_td += cl->pers.stats.dmgTeam;
+			tot_hits += cl->pers.stats.acc_hits;
+			tot_shots += cl->pers.stats.acc_shots;
+			tot_revives += cl->pers.stats.revives;
 
-			float playeracc = ((cl->pers.acc_shots == 0) ? 0.00 : ((float)cl->pers.acc_hits / (float)cl->pers.acc_shots) * 100.00f);
+			float playeracc = ((cl->pers.stats.acc_shots == 0) ? 0.00f : ((float)cl->pers.stats.acc_hits / (float)cl->pers.stats.acc_shots) * 100.00f);
 
 			cnt++;
 			teamcnt++;
@@ -353,25 +359,23 @@ void stats_MatchInfo(void) {
 					CP(va("print \"%s ^3: %s%-3d %-3d %-3d %-3d %-3d ^3: %s%-6.2f %-3d ^3: %s%-6d %-6d %-5d\n\"",
 						TablePrintableColorName(cl->pers.netname, 20),
 						statcolor,
-						cl->pers.kills,
-						cl->pers.deaths,
-						cl->pers.gibs,
-						cl->pers.teamKills,
-						cl->pers.revives,
+						cl->pers.stats.kills,
+						cl->pers.stats.deaths,
+						cl->pers.stats.gibs,
+						cl->pers.stats.teamKills,
+						cl->pers.stats.revives,
 						statcolor,
 						playeracc,
-						cl->pers.headshots,
+						cl->pers.stats.headshots,
 						statcolor,
-						cl->pers.dmgGiven,
-						cl->pers.dmgReceived,
-						cl->pers.dmgTeam,
-						statcolor,
-						cl->ps.persistant[PERS_SCORE]));
+						cl->pers.stats.dmgGiven,
+						cl->pers.stats.dmgReceived,
+						cl->pers.stats.dmgTeam));
 				}
 			}
 		}
 
-		tot_acc = ((tot_shots == 0) ? 0.00 : ((float)tot_hits / (float)tot_shots) * 100.00f);
+		tot_acc = ((tot_shots == 0) ? 0.00f : ((float)tot_hits / (float)tot_shots) * 100.00f);
 		AP(va("print \""
 			"^3-----------------------------------------------------------------------------\n"
 			"^3Team Totals          ^3: ^7%-3d %-3d %-3d %-3d %-3d ^3: ^7%-6.2f %-3d ^3: ^7%-6d %-6d %-5d\n"
@@ -385,8 +389,7 @@ void stats_MatchInfo(void) {
 			tot_hs,
 			tot_dg,
 			tot_dr,
-			tot_td,
-			tot_gp));
+			tot_td));
 	}
 	AP(va("print \"%s\n\" 0", ((!cnt) ? "^3\nNo scores to report." : "")));
 }
@@ -431,18 +434,18 @@ void stats_ffaMatchInfo(void) {
 	for (j = 0; j < level.numPlayingClients; j++) {
 		cl = level.clients + level.sortedClients[j];
 
-		tot_kills += cl->pers.kills;
-		tot_deaths += cl->pers.deaths;
-		tot_gib += cl->pers.gibs;
-		tot_hs += cl->pers.headshots;
-		tot_dg += cl->pers.dmgGiven;
-		tot_dr += cl->pers.dmgReceived;
+		tot_kills += cl->pers.stats.kills;
+		tot_deaths += cl->pers.stats.deaths;
+		tot_gib += cl->pers.stats.gibs;
+		tot_hs += cl->pers.stats.headshots;
+		tot_dg += cl->pers.stats.dmgGiven;
+		tot_dr += cl->pers.stats.dmgReceived;
 		tot_gp += cl->ps.persistant[PERS_SCORE];
-		tot_hits += cl->pers.acc_hits;
-		tot_shots += cl->pers.acc_shots;
+		tot_hits += cl->pers.stats.acc_hits;
+		tot_shots += cl->pers.stats.acc_shots;
 
-		float acc = ((cl->pers.acc_shots == 0) ? 0.00f : ((float)cl->pers.acc_hits / (float)cl->pers.acc_shots) * 100.00f);
-		float kr = cl->pers.deaths == 0 ? (float)cl->pers.kills / 1.00f : (float)cl->pers.kills / (float)cl->pers.deaths;
+		float acc = ((cl->pers.stats.acc_shots == 0) ? 0.00f : ((float)cl->pers.stats.acc_hits / (float)cl->pers.stats.acc_shots) * 100.00f);
+		float kr = cl->pers.stats.deaths == 0 ? (float)cl->pers.stats.kills / 1.00f : (float)cl->pers.stats.kills / (float)cl->pers.stats.deaths;
 
 		cnt++;
 		for (r = 0; r < level.maxclients; ++r) {
@@ -452,16 +455,16 @@ void stats_ffaMatchInfo(void) {
 				CP(va("print \"%s ^3: %s%-3d %-3d %-3d %-6.2f ^3: %s%-6.2f %-3d ^3: %s%-6d %-6d\n\"",
 					TablePrintableColorName(cl->pers.netname, 20),
 					statcolor,
-					cl->pers.kills,
-					cl->pers.deaths,
-					cl->pers.gibs,
+					cl->pers.stats.kills,
+					cl->pers.stats.deaths,
+					cl->pers.stats.gibs,
 					kr,
 					statcolor,
 					acc,
-					cl->pers.headshots,
+					cl->pers.stats.headshots,
 					statcolor,
-					cl->pers.dmgGiven,
-					cl->pers.dmgReceived,
+					cl->pers.stats.dmgGiven,
+					cl->pers.stats.dmgReceived,
 					statcolor,
 					cl->ps.persistant[PERS_SCORE]));
 			}
@@ -704,10 +707,10 @@ void stats_ProcessExtraRoundStats(void) {
 		if (cl->pers.connected != CON_CONNECTED)
 			continue;
 
-		int shots = cl->pers.acc_shots;
-		int hits = cl->pers.acc_hits;
-		int kills = cl->pers.kills;
-		int deaths = cl->pers.deaths;
+		int shots = cl->pers.stats.acc_shots;
+		int hits = cl->pers.stats.acc_hits;
+		int kills = cl->pers.stats.kills;
+		int deaths = cl->pers.stats.deaths;
 		Q_strncpyz(player_name_safe_copy, cl->pers.netname, sizeof(player_name_safe_copy));
 		// 12 is one of the printable characters that comes out as a space/empty. So it works here to fix
 		// the problem where spaces are sometimes newlined by the client's CenterPrint and color is removed.
@@ -867,16 +870,16 @@ void stats_RoundStats(void)
 
 float GetPlayerEfficiency(const daily_stats_t *player)
 {
-	if (player->kills < g_dailyMinimumKills.integer) {
+	if (player->stats.kills < g_dailyMinimumKills.integer) {
 		return MIN_KILLS_DECREASE;
 	}
 	else {
-		int safe_deaths = player->deaths == 0 ? 1 : player->deaths;
+		int safe_deaths = player->stats.deaths == 0 ? 1 : player->stats.deaths;
 		return
-			((float)((player->kills + player->revives) / (float)safe_deaths)) +
-			((float)(player->kills / 1000)) +
-			((float)(player->revives / 500)) +
-			((float)(player->hits) / (float)(player->shots == 0 ? 1 : player->shots));
+			((float)((player->stats.kills + player->stats.revives) / (float)safe_deaths)) +
+			((float)(player->stats.kills / 1000)) +
+			((float)(player->stats.revives / 500)) +
+			((float)(player->stats.acc_hits) / (float)(player->stats.acc_shots == 0 ? 1 : player->stats.acc_shots));
 	}
 }
 
@@ -889,14 +892,6 @@ int DailyCompare(const void *a, const void *b)
 		return -1;
 
 	return player1Eff < player2Eff;
-}
-
-char *PluralizedDailyMessage(daily_stats_t *dp)
-{
-	return va("%d %s, %d %s, and %d %s",
-		dp->kills, dp->kills == 1 ? "kill" : "kills",
-		dp->deaths, dp->deaths == 1 ? "death" : "deaths",
-		dp->revives, dp->revives == 1 ? "revive" : "revives");
 }
 
 void stats_InitDailyRankings()
@@ -968,7 +963,7 @@ void stats_InitDailyRankings()
 	ranked = dailycount;
 	for (i = 0; i < dailycount; ++i) {
 		dp = dailyplayers + i;
-		if (dp->kills < g_dailyMinimumKills.integer) {
+		if (dp->stats.kills < g_dailyMinimumKills.integer) {
 			ranked = i;
 			break;
 		}
@@ -1023,7 +1018,7 @@ void stats_UpdateDailyRankings()
 
 		// Duplicates are completely discarded.. sorry guys.
 		if (client->duplicateip) {
-			continue;
+			//continue;
 		}
 
 		// Don't store bots.
@@ -1078,53 +1073,26 @@ daily_stats_t *stats_GetDailyStatsForClient(gclient_t *cl)
 	return player_stats;
 }
 
-void stats_UpdateDailyStatsForClient(gclient_t *cl, daily_stats_t *stats)
+void stats_UpdateDailyStatsForClient(gclient_t *cl, daily_stats_t *player)
 {
-	if (stats == NULL) {
-		stats = stats_GetDailyStatsForClient(cl);
-		if (stats == NULL) {
+	int i, player_stats_fields_length;
+
+	if (player == NULL) {
+		player = stats_GetDailyStatsForClient(cl);
+		if (player == NULL) {
 			return;
 		}
 	}
 
-	stats->kills += cl->pers.kills;
-	stats->deaths += cl->pers.deaths;
-	stats->revives += cl->pers.revives;
-	stats->shots += cl->pers.acc_shots;
-	stats->hits += cl->pers.acc_hits;
-	stats->ip = cl->sess.ip;
-	Q_strncpyz(stats->name, cl->pers.netname, sizeof(stats->name));
-}
-
-void stats_DisplayDailyRanking(gentity_t *ent)
-{
-	int i;
-
-	if (!dailycount) {
-		CP("print \"\nThere aren't any daily rankings yet.\nFinish a round and then try again.\n\n\"");
-		return;
+	// if struct player_stats_t ever contains a stat that isn't of type unsigned short
+	// then this hacky code will break horribly. beware!
+	player_stats_fields_length = sizeof(player_stats_t) / sizeof(unsigned short);
+	for (i = 0; i < player_stats_fields_length; ++i) {
+		((unsigned short *)(&player->stats))[i] += ((unsigned short *)(&cl->pers.stats))[i];
 	}
 
-	for (i = 0; i < dailycount; i++) {
-		daily_stats_t *player = dailyplayers + i;
-
-		if (player->ip == ent->client->sess.ip) {
-			if (player->kills < g_dailyMinimumKills.integer) {
-				int remaining = g_dailyMinimumKills.integer - player->kills;
-
-				CP(va("print \"\nYou're %d %s away from being ranked!\n\n\"", remaining, (remaining == 1) ? "kill" : "kills"));
-			}
-			else {
-				CP(va("print \"\nYour rank is ^3%d ^7out of ^3%d^7.\n"
-					"You have ^3%s^7.\n\n\"",
-					(i + 1), ranked, PluralizedDailyMessage(player)));
-			}
-
-			return;
-		}
-	}
-	
-	CP("print \"\nYou aren't ranked yet.\nFinish a round and then try again.\n\n\"");
+	player->ip = cl->sess.ip;
+	Q_strncpyz(player->name, cl->pers.netname, sizeof(player->name));
 }
 
 void stats_DisplayDailyStats(gentity_t *ent)
@@ -1161,14 +1129,14 @@ void stats_DisplayDailyStats(gentity_t *ent)
 			playerfound = qtrue;
 		}
 
-		float playeracc = ((player->shots == 0) ? 0.00f : ((float)player->hits / (float)player->shots) * 100.00f);
+		float playeracc = ((player->stats.acc_shots == 0) ? 0.00f : ((float)player->stats.acc_hits / (float)player->stats.acc_shots) * 100.00f);
 
 		CP(va("print \"^3%4d ^3| ^7%s ^3| %s%-11s ^3| %s%-7d ^3| %s%-7d ^3| %s%-7d ^3| %s%-6.2f\n\"",
 			(i + 1), TablePrintableColorName(player->name, 15),
 			statcolor, Q_GetUnpackedIpAddress(player->ip, qfalse),
-			statcolor, player->kills,
-			statcolor, player->deaths,
-			statcolor, player->revives,
+			statcolor, player->stats.kills,
+			statcolor, player->stats.deaths,
+			statcolor, player->stats.revives,
 			statcolor, playeracc));
 
 		if (count == moreCount && (i + 1) != ranked) {
@@ -1266,8 +1234,8 @@ void stats_SubmitGlobalStats()
 		pers = &ent->client->pers;
 
 		stats = va("%s%s\\%s\\%i\\%i\\%i\\%i\\%i\\%i\\\\",
-			stats, pers->netname, clientIP(ent, qtrue), pers->kills,
-			pers->deaths, pers->headshots, pers->acc_shots, pers->acc_hits, level.time - pers->beganPlayingTime);
+			stats, pers->netname, clientIP(ent, qtrue), pers->stats.kills,
+			pers->stats.deaths, pers->stats.headshots, pers->stats.acc_shots, pers->stats.acc_hits, level.time - pers->beganPlayingTime);
 	}
 
 	// Remove the last two back slashes (otherwise an empty player is picked up by stats server and fails)

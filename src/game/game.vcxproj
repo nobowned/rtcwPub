@@ -96,7 +96,7 @@
       <Command>IF NOT EXIST "$(TargetDir)..\..\main" MKDIR "$(TargetDir)..\..\main"</Command>
 	</PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /Y /S /Q "$(TargetDir)..\..\..\assets\server\main" "$(TargetDir)..\..\main"</Command>
+      <Command>xcopy /Y /S /Q /D "$(TargetDir)..\..\..\assets\server\main" "$(TargetDir)..\..\main"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

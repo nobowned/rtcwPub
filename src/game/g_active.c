@@ -1883,7 +1883,7 @@ void ClientThink_real( gentity_t *ent ) {
 	// L0 - Max TKs - Drop player if over limit and time has expired..
 	if (sb_system.integer && sb_maxTKs.integer > 0)
 	{
-		int count = ent->client->pers.teamKills + 1 - ent->client->pers.sb_TKforgiven;
+		int count = ent->client->pers.stats.teamKills + 1 - ent->client->pers.sb_TKforgiven;
 
 		if (count > sb_maxTKs.integer)
 		{

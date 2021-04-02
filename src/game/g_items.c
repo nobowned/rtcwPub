@@ -388,8 +388,8 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 		// L0 - Stats
 		if ((ent->parent) && (ent->parent != other) && (OnSameTeam(ent->parent, other)))
 		{
-			ent->parent->client->pers.ammoPacks++;
-			stats_StoreRoundStat(ent->parent->client->pers.netname, ent->parent->client->pers.ammoPacks, ROUND_AMMOGIVEN);
+			ent->parent->client->pers.stats.ammoPacks++;
+			stats_StoreRoundStat(ent->parent->client->pers.netname, ent->parent->client->pers.stats.ammoPacks, ROUND_AMMOGIVEN);
 		}
 
 		// Don't give syringes/nades/throwing knives in ffa.
@@ -601,8 +601,8 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 	// L0 - Stats
 	if ((ent->parent) && (ent->parent != other) && (OnSameTeam(ent->parent, other)))
 	{
-		ent->parent->client->pers.medPacks++;
-		stats_StoreRoundStat(ent->parent->client->pers.netname, ent->parent->client->pers.medPacks, ROUND_MEDGIVEN);
+		ent->parent->client->pers.stats.medPacks++;
+		stats_StoreRoundStat(ent->parent->client->pers.netname, ent->parent->client->pers.stats.medPacks, ROUND_MEDGIVEN);
 	}
 
 	// L0 - reset poison

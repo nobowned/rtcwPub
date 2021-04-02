@@ -513,6 +513,33 @@ typedef struct {
 	char		locationName[MAX_NAME_LENGTH];
 } saved_location_t;
 
+typedef struct {
+	unsigned short	kills;
+	unsigned short	deaths;
+	unsigned short	teamKills;
+	unsigned short	headshots;
+	unsigned short	revives;
+	unsigned short	medPacks;
+	unsigned short	ammoPacks;
+	unsigned short	acc_shots;
+	unsigned short	acc_hits;
+	unsigned short	dmgGiven;
+	unsigned short	dmgReceived;
+	unsigned short	dmgTeam;
+	unsigned short	gibs;
+	unsigned short	suicides;
+	unsigned short	poison;
+	unsigned short	chicken;
+	unsigned short	knifeKills;
+	unsigned short	fastStabs;
+} player_stats_t;
+
+typedef struct {
+	char name[MAX_NETNAME];
+	int ip;
+	player_stats_t stats;
+} daily_stats_t;
+
 // client data that stays across multiple respawns, but is cleared
 // on each level change or team change at ClientBegin()
 typedef struct {
@@ -563,26 +590,10 @@ typedef struct {
 	// Takes ability to rename from client..it's cleared next round, map load..
 	qboolean	nameLocked;	
 
-	// Stats	
-	int			kills;
-	int			deaths;
-	int			teamKills;	// Note that SB uses it as well!
-	int			headshots;
-	int			revives;
-	int			medPacks;
-	int			ammoPacks;
-	int			acc_shots;
-	int			acc_hits;
-	int			dmgGiven;
-	int			dmgReceived;
-	int			dmgTeam;
-	int			gibs;
-	int			suicides;
-	int			poison;
-	int			chicken;
-	int			knifeKills;
-	int			fastStabs;
-	int			beganPlayingTime;
+	// Stats
+	player_stats_t	stats;
+	int				beganPlayingTime;
+
 
 	// Death Spree
 	int			spreeDeaths;
@@ -1966,7 +1977,6 @@ void stats_WriteRoundStats(void);
 void stats_RoundStats(void);
 void stats_UpdateDailyRankings(void);
 void stats_InitDailyRankings(void);
-void stats_DisplayDailyRanking(gentity_t *ent);
 void stats_DisplayDailyStats(gentity_t *ent);
 void stats_CheckDailyReset(void);
 daily_stats_t *stats_GetDailyStatsForClient(gclient_t *cl);

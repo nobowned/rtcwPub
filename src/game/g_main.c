@@ -2145,19 +2145,19 @@ int QDECL SortRanks( const void *a, const void *b ) {
 	if (g_ffa.integer)
 	{
 		// then by kills
-		if (ca->pers.kills >
-			cb->pers.kills)
+		if (ca->pers.stats.kills >
+			cb->pers.stats.kills)
 		{
 			return -1;
 		}
-		if (ca->pers.kills <
-			cb->pers.kills)
+		if (ca->pers.stats.kills <
+			cb->pers.stats.kills)
 		{
 			return 1;
 		}
 		// then by k/d
-		float ca_kd = ca->pers.deaths == 0 ? (float)ca->pers.kills / 1.0f : (float)ca->pers.kills / (float)ca->pers.deaths;
-		float cb_kd = cb->pers.deaths == 0 ? (float)cb->pers.kills / 1.0f : (float)cb->pers.kills / (float)cb->pers.deaths;
+		float ca_kd = ca->pers.stats.deaths == 0 ? (float)ca->pers.stats.kills / 1.0f : (float)ca->pers.stats.kills / (float)ca->pers.stats.deaths;
+		float cb_kd = cb->pers.stats.deaths == 0 ? (float)cb->pers.stats.kills / 1.0f : (float)cb->pers.stats.kills / (float)cb->pers.stats.deaths;
 		if (abs(ca_kd - cb_kd) > 0.00001)
 		{
 			if (ca_kd > cb_kd)
@@ -2170,24 +2170,24 @@ int QDECL SortRanks( const void *a, const void *b ) {
 			}
 		}
 		// then by damage given
-		if (ca->pers.dmgGiven >
-			cb->pers.dmgGiven)
+		if (ca->pers.stats.dmgGiven >
+			cb->pers.stats.dmgGiven)
 		{
 			return -1;
 		}
-		if (ca->pers.dmgGiven <
-			cb->pers.dmgGiven)
+		if (ca->pers.stats.dmgGiven <
+			cb->pers.stats.dmgGiven)
 		{
 			return 1;
 		}
 		// then by headshots
-		if (ca->pers.headshots >
-			cb->pers.headshots)
+		if (ca->pers.stats.headshots >
+			cb->pers.stats.headshots)
 		{
 			return -1;
 		}
-		if (ca->pers.headshots <
-			cb->pers.headshots)
+		if (ca->pers.stats.headshots <
+			cb->pers.stats.headshots)
 		{
 			return 1;
 		}
@@ -2293,7 +2293,7 @@ void CalculateRanks( void ) {
 	{
 		cl = level.clients + level.sortedClients[0];
 
-		if (cl->pers.kills > 0)
+		if (cl->pers.stats.kills > 0)
 		{
 			level.ffaTopScorer = cl;
 		}
@@ -2993,7 +2993,7 @@ void CheckExitRules( void ) {
 	if (g_ffa.integer && g_fraglimit.integer)
 	{
 		if (level.ffaTopScorer != NULL &&
-			level.ffaTopScorer->pers.kills >= g_fraglimit.integer)
+			level.ffaTopScorer->pers.stats.kills >= g_fraglimit.integer)
 		{
 			stats_LastBloodMessage(qfalse);	// L0 - Last killer
 			trap_SendServerCommand(-1, va("print \"%s^7 hit the fraglimit.\n\"", level.ffaTopScorer->pers.netname));
@@ -3698,7 +3698,7 @@ void G_RunFrame( int levelTime ) {
 		for (i = 0; i < level.numPlayingClients; ++i)
 		{
 			ent = g_entities + level.sortedClients[i];
-			CP(va("print \"Rank: ^3%i^7, Frags: ^3%i/%i\n\"", i + 1, ent->client->pers.kills, g_fraglimit.integer));
+			CP(va("print \"Rank: ^3%i^7, Frags: ^3%i/%i\n\"", i + 1, ent->client->pers.stats.kills, g_fraglimit.integer));
 		}
 
 		level.leftCheck = level.time;

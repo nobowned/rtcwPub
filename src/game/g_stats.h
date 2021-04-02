@@ -102,14 +102,4 @@ typedef struct {
 	time_t reset_ctime;
 } daily_stats_header_t;
 
-typedef struct {
-	char name[MAX_NETNAME];
-	int ip;
-	unsigned short kills;
-	unsigned short deaths;
-	unsigned short revives;
-	unsigned short shots;
-	unsigned short hits;
-} daily_stats_t;
-
 #endif // __STATS_H

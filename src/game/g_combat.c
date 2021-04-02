@@ -243,8 +243,8 @@ void PrintGib(gentity_t *attacker, gentity_t *targ)
 
 		if (!OnSameTeam(attacker, targ) && attacker->client)
 		{
-			attacker->client->pers.gibs++;
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.gibs, ROUND_GIBS);
+			attacker->client->pers.stats.gibs++;
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.gibs, ROUND_GIBS);
 		}
 	}
 }
@@ -420,8 +420,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		APRS(self, va("rtcwpub/sound/game/events/%s", ((g_fastStabSound.integer == 1) ? "stab.wav" :
 			((g_fastStabSound.integer == 2) ? "stab_alt.wav" : snd))));
 
-		attacker->client->pers.fastStabs++;
-		stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.fastStabs, ROUND_FASTSTABS);
+		attacker->client->pers.stats.fastStabs++;
+		stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.fastStabs, ROUND_FASTSTABS);
 	}
 
 	// L0 - Don't bother in warmup etc..
@@ -439,25 +439,25 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	if (attacker && attacker->client && g_gamestate.integer == GS_PLAYING) {
 		// Life kills & death spress
 		if (!OnSameTeam(attacker, self) || (g_ffa.integer && attacker != self)) {
-			attacker->client->pers.kills++;
+			attacker->client->pers.stats.kills++;
 			attacker->client->pers.lifeKills++;
 
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.kills, ROUND_KILLS);
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.kills, ROUND_KILLS);
 			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.lifeKills, ROUND_KILLPEAK);
 
 			if (g_mapStats.integer == 1)
-				stats_StoreMapStat(attacker, attacker->client->pers.kills, MAP_KILLER);
+				stats_StoreMapStat(attacker, attacker->client->pers.stats.kills, MAP_KILLER);
 			else if (g_mapStats.integer == 2)
-				stats_StoreMapStat(attacker, attacker->client->pers.kills, MAP_KILLING_SPREE);
+				stats_StoreMapStat(attacker, attacker->client->pers.stats.kills, MAP_KILLING_SPREE);
 
 			// Count teamkill
 		}
 		else {
 			// Admin bot - teamKills
 			if (attacker != self) {
-				attacker->client->pers.teamKills++;
+				attacker->client->pers.stats.teamKills++;
 				SB_maxTeamKill(attacker);
-				stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.teamKills, ROUND_TEAMKILLS);
+				stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.teamKills, ROUND_TEAMKILLS);
 			}
 		}
 	}
@@ -488,15 +488,15 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->ps.persistant[PERS_KILLED]++;
 
 // L0 
-	self->client->pers.deaths++;
+	self->client->pers.stats.deaths++;
 	self->client->pers.spreeDeaths++;
-	stats_StoreRoundStat(self->client->pers.netname, self->client->pers.deaths, ROUND_DEATHS);
+	stats_StoreRoundStat(self->client->pers.netname, self->client->pers.stats.deaths, ROUND_DEATHS);
 	stats_StoreRoundStat(self->client->pers.netname, self->client->pers.spreeDeaths, ROUND_DEATHPEAK);
 
 	if (g_mapStats.integer == 3)
-		stats_StoreMapStat(self, self->client->pers.deaths, MAP_VICTIM);
+		stats_StoreMapStat(self, self->client->pers.stats.deaths, MAP_VICTIM);
 	else if (g_mapStats.integer == 4)
-		stats_StoreMapStat(self, self->client->pers.deaths, MAP_DEATH_SPREE);
+		stats_StoreMapStat(self, self->client->pers.stats.deaths, MAP_DEATH_SPREE);
 // End
 
 // JPW NERVE -- if player is holding ticking grenade, drop it
@@ -612,7 +612,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 			if (g_ffa.integer)
 			{
-				int killsRemain = g_fraglimit.integer - attacker->client->pers.kills;
+				int killsRemain = g_fraglimit.integer - attacker->client->pers.stats.kills;
 				if (killsRemain < 5 && killsRemain > 0)
 				{
 					AP(va("chat \"console: %s^7 has ^2%i^7 %s left.\n\"", attacker->client->pers.netname, killsRemain, killsRemain > 1 ? "frags" : "frag"));
@@ -1218,13 +1218,13 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		// L0 - Stats
 		if ((attacker && attacker->client) && (!OnSameTeam(attacker, targ) || g_ffa.integer))
 		{
-			attacker->client->pers.headshots++;
+			attacker->client->pers.stats.headshots++;
 			attacker->client->pers.lifeHeadshots++;
 
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.headshots, ROUND_HEADSHOTS);
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.headshots, ROUND_HEADSHOTS);
 
 			if (g_mapStats.integer == 6)
-				stats_StoreMapStat(attacker, attacker->client->pers.deaths, MAP_HEADSHOTS);
+				stats_StoreMapStat(attacker, attacker->client->pers.stats.deaths, MAP_HEADSHOTS);
 		}
 	}
 
@@ -1270,13 +1270,13 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		int healthTaken = (take > targ->client->ps.stats[STAT_HEALTH]) ? targ->client->ps.stats[STAT_HEALTH] : take;
 
 		if (OnSameTeam(attacker, targ) && !g_ffa.integer) {
-			attacker->client->pers.dmgTeam += healthTaken;
-			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.dmgTeam, ROUND_TEAMBLEED);
+			attacker->client->pers.stats.dmgTeam += healthTaken;
+			stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.stats.dmgTeam, ROUND_TEAMBLEED);
 		}
 		else {
-			attacker->client->pers.dmgGiven += healthTaken;
+			attacker->client->pers.stats.dmgGiven += healthTaken;
 			attacker->client->pers.give_life_damage += healthTaken;
-			targ->client->pers.dmgReceived += healthTaken;
+			targ->client->pers.stats.dmgReceived += healthTaken;
 		}
 	}
 
