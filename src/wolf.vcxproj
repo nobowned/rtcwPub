@@ -294,6 +294,9 @@
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Dedicated|Win32'">
+      <LocalDebuggerCommandArguments>+exec deathmatch.cfg</LocalDebuggerCommandArguments>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="client\cl_cgame.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Dedicated|Win32'">true</ExcludedFromBuild>
