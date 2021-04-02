@@ -414,6 +414,10 @@ void Weapon_Syringe(gentity_t *ent) {
 				AddScore(ent, WOLF_MEDIC_BONUS); // JPW NERVE props to the medic for the swift and dexterous bit o healitude
 				ent->client->pers.revives++;
 				ent->client->pers.lifeRevives++;
+				if (traceEnt->client->pers.last_means_of_death != MOD_SELFKILL &&
+					traceEnt->client->pers.lastkiller_client != ent->client->ps.clientNum) {
+					ent->client->pers.give_life_revives++;
+				}
 
 				stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.revives, ROUND_REVIVES);
 

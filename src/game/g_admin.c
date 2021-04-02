@@ -158,7 +158,7 @@ int ClientNumbersFromName(char *name, int *matches) {
 Get client number from name
 ===========
 */
-int ClientNumberFromName(gentity_t *ent, char *name) {
+int ClientNumberFromName(gentity_t *ent, char *name, qboolean send_error_message) {
 	int i, textLen;
 	char nm[MAX_NETNAME];
 	char c;
@@ -197,11 +197,15 @@ int ClientNumberFromName(gentity_t *ent, char *name) {
 	}
 
 	if (count == 0) {
-		CP(va("print \"There aren't any clients with ^1%s ^7in their name^1!\n\"", name));
+		if (send_error_message) {
+			CP(va("print \"There aren't any clients with ^1%s ^7in their name^1!\n\"", name));
+		}
 		return -1;
 	}
 	else if (count > 1) {
-		CP(va("print \"Too many clients with ^1%s ^7in their name^1!\n\"", name));
+		if (send_error_message) {
+			CP(va("print \"Too many clients with ^1%s ^7in their name^1!\n\"", name));
+		}
 		return -1;
 	}
 

@@ -454,8 +454,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 		}
 		else {
 			// Admin bot - teamKills
-			if (attacker != self)
-			{
+			if (attacker != self) {
+				attacker->client->pers.teamKills++;
 				SB_maxTeamKill(attacker);
 				stats_StoreRoundStat(attacker->client->pers.netname, attacker->client->pers.teamKills, ROUND_TEAMKILLS);
 			}
@@ -794,6 +794,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->client->lasthurt_client = ENTITYNUM_NONE;
 	self->client->lasthurt_mod = 0;
 // End
+	self->client->pers.last_means_of_death = meansOfDeath;
 }
 
 
@@ -1274,6 +1275,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 		else {
 			attacker->client->pers.dmgGiven += healthTaken;
+			attacker->client->pers.give_life_damage += healthTaken;
 			targ->client->pers.dmgReceived += healthTaken;
 		}
 	}

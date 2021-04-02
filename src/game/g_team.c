@@ -1658,3 +1658,23 @@ void G_swapTeamLocks( void ) {
 	teamInfo[TEAM_RED].team_lock = teamInfo[TEAM_BLUE].team_lock;
 	teamInfo[TEAM_BLUE].team_lock = fLock;
 }
+
+int Team_CountLiveTeammates(gentity_t *ent) {
+	int i, live_teammates_count;
+
+	live_teammates_count = 0;
+
+	for (i = 0; i < level.numPlayingClients; ++i) {
+		gentity_t *other = g_entities + level.sortedClients[i];
+		if (other->client->sess.sessionTeam != ent->client->sess.sessionTeam) {
+			continue;
+		}
+		if (other->client->ps.pm_flags & PMF_LIMBO &&
+			other->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0) {
+			continue;
+		}
+		live_teammates_count++;
+	}
+
+	return live_teammates_count;
+}

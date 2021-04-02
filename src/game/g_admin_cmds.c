@@ -55,7 +55,7 @@ void cmd_ignore(gentity_t *ent) {
 	tag = sortTag(ent);
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1) {
 		return;
 	}
@@ -91,7 +91,7 @@ void cmd_unignore(gentity_t *ent) {
 	tag = sortTag(ent);
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1) {
 		return;
 	}
@@ -192,7 +192,7 @@ void cmd_kick(gentity_t *ent) {
 	tag = sortTag(ent);
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1) {
 		return;
 	}
@@ -260,7 +260,7 @@ void cmd_slap(gentity_t *ent) {
 	int damagetodo = 20;
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1)
 	{
 		return;
@@ -325,7 +325,7 @@ void cmd_kill(gentity_t *ent) {
 		ent->client->pers.netname, clientIP(ent, qtrue));
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1) {
 		return;
 	}
@@ -390,7 +390,7 @@ void cmd_specs(gentity_t *ent) {
 	int client_num;
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	client_num = ClientNumberFromName(ent, client_name);
+	client_num = ClientNumberFromName(ent, client_name, qtrue);
 	if (client_num == -1)
 		return;
 
@@ -436,7 +436,7 @@ void cmd_axis(gentity_t *ent) {
 	int client_num;
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	client_num = ClientNumberFromName(ent, client_name);
+	client_num = ClientNumberFromName(ent, client_name, qtrue);
 	if (client_num == -1)
 		return;
 
@@ -482,7 +482,7 @@ void cmd_allied(gentity_t *ent) {
 	int client_num;
 
 	trap_Argv(1, client_name, sizeof(client_name));
-	client_num = ClientNumberFromName(ent, client_name);
+	client_num = ClientNumberFromName(ent, client_name, qtrue);
 	if (client_num == -1)
 		return;
 
@@ -1284,7 +1284,7 @@ void cmd_ban(gentity_t *ent) {
 
 	tag = sortTag(ent);
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1)
 		return;
 
@@ -1357,7 +1357,7 @@ void cmd_rangeBan(gentity_t *ent) {
 
 	tag = sortTag(ent);
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1)
 		return;
 
@@ -1403,7 +1403,7 @@ void cmd_tempBan(gentity_t *ent) {
 
 	tag = sortTag(ent);
 	trap_Argv(1, client_name, sizeof(client_name));
-	clientNum = ClientNumberFromName(ent, client_name);
+	clientNum = ClientNumberFromName(ent, client_name, qtrue);
 	if (clientNum == -1)
 		return;
 

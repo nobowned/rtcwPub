@@ -29,7 +29,7 @@ char *getMessage(gentity_t *ent);
 qboolean do_cmds(gentity_t *ent, char *text);
 void cmd_help(gentity_t *ent);
 int ClientNumbersFromName(char *name, int *matches);
-int ClientNumberFromName(gentity_t *ent, char *name);
+int ClientNumberFromName(gentity_t *ent, char *name, qboolean send_error_message);
 gentity_t *GetClientEntity(gentity_t *ent, char *cNum, gentity_t **found);
 
 //

@@ -964,7 +964,7 @@ void FollowClient(gentity_t *ent, qboolean byName)
 
 	trap_Argv(1, arg, sizeof(arg));
 	if (byName) {
-		targetClientNumber = ClientNumberFromName(ent, arg);
+		targetClientNumber = ClientNumberFromName(ent, arg, qtrue);
 	}
 	else {
 		targetClientNumber = ClientNumberFromString(ent, arg);
@@ -3850,6 +3850,162 @@ void Cmd_DisplayServerUptime_f(gentity_t *ent) {
 	CPS(ent, "sound/multiplayer/dynamite_01.wav");
 }
 
+void Cmd_GiveLife_f(gentity_t *ent) {
+	char argument[ADMIN_ARG_SIZE];
+	int i;
+
+	if (trap_Argc() < 2) {
+		// TODO: Automatically choose someone on their team to give a life to.
+		// Possibly sort/choose teammate based on:
+		//	1. Are they dead?
+		//	2. Daily stats rank
+		//	3. Round score
+		CP("cp \"Please provide a player name.\n\"");
+		return;
+	}
+
+	if (!g_giveLife.integer) {
+		CP("cp \"Giving lives is disabled.\n\"");
+		return;
+	}
+
+	if (!g_maxlives.integer) {
+		CP("cp \"g_maxlives is disabled.\n\"");
+		return;
+	}
+
+	if (ent->client->sess.sessionTeam != TEAM_RED &&
+		ent->client->sess.sessionTeam != TEAM_BLUE) {
+		CP("cp \"You need to be playing to give lives.\n\"");
+		return;
+	}
+
+	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] < 0) {
+		CP("cp \"You're out of lives to give.\n\"");
+		return;
+	}
+
+	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0 &&
+		ent->client->ps.pm_flags & PMF_LIMBO) {
+		CP("cp \"You're out of lives to give.\n\"");
+		return;
+	}
+
+	if (Team_CountLiveTeammates(ent)) {
+		if (g_giveLifeRequiredDamage.integer && ent->client->pers.give_life_damage < g_giveLifeRequiredDamage.integer) {
+			int damage_required = g_giveLifeRequiredDamage.integer - ent->client->pers.give_life_damage;
+			CP(va("cp \"You must do ^3%d ^7more damage to enemies.\n\"", damage_required));
+			return;
+		}
+		if (g_giveLifeRequiredRevives.integer && ent->client->pers.give_life_revives < g_giveLifeRequiredRevives.integer) {
+			int revives_required = g_giveLifeRequiredRevives.integer - ent->client->pers.give_life_revives;
+			CP(va("cp \"You must revive ^3%d ^7teammate%s.\n\"", revives_required, revives_required > 1 ? "s" : ""));
+			return;
+		}
+	}
+
+	qboolean is_number = qtrue;
+	trap_Argv(1, argument, sizeof(argument));
+	for (i = 0; i < strlen(argument); ++i) {
+		if (!isdigit(argument[i])) {
+			is_number = qfalse;
+			break;
+		}
+	}
+
+	int target_client_num;
+	if (is_number) {
+		target_client_num = atoi(argument);
+		if (target_client_num < 0 || target_client_num >= MAX_CLIENTS) {
+			CP(va("cp \"^3%d ^7is an invalid client number.\n\"", target_client_num));
+			return;
+		}
+		qboolean does_client_num_match_connected_client = qfalse;
+		for (i = 0; i < level.numConnectedClients; ++i) {
+			if (target_client_num == level.sortedClients[i]) {
+				does_client_num_match_connected_client = qtrue;
+				break;
+			}
+		}
+		if (!does_client_num_match_connected_client) {
+			CP(va("cp \"Couldn't find anyone with client number ^3%d^7.\n\"", target_client_num));
+			return;
+		}
+	}
+	else {
+		target_client_num = ClientNumberFromName(ent, argument, qfalse);
+		if (target_client_num == -1) {
+			CP(va("cp \"Couldn't find anyone with %s ^7in their name.\n\"", argument));
+			return;
+		}
+	}
+
+	gentity_t *target_entity = g_entities + target_client_num;
+
+	if (ent == target_entity) {
+		CP("cp \"You can't give lives to yourself. Nice try.\n\"");
+		return;
+	}
+
+	if (ent->client->sess.sessionTeam != target_entity->client->sess.sessionTeam) {
+		CP("cp \"You can't give lives to enemy players.\n\"");
+		return;
+	}
+
+	qboolean has_max_lives = qfalse;
+	switch (target_entity->client->sess.sessionTeam) {
+	case TEAM_BLUE:
+		if (g_alliedmaxlives.integer) {
+			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_alliedmaxlives.integer - 1) {
+				has_max_lives = qtrue;
+			}
+		}
+		else if (g_maxlives.integer) {
+			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
+				has_max_lives = qtrue;
+			}
+		}
+		break;
+	case TEAM_RED:
+		if (g_axismaxlives.integer) {
+			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_axismaxlives.integer - 1) {
+				has_max_lives = qtrue;
+			}
+		}
+		else if (g_maxlives.integer) {
+			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
+				has_max_lives = qtrue;
+			}
+		}
+		break;
+	}
+
+	if (has_max_lives) {
+		CP(va("cp \"%s ^7has the maximum amount of lives already.\n\"", target_entity->client->pers.netname));
+		return;
+	}
+	
+	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0) {
+		Cmd_Gib_f(ent);
+		AP(va("chat \"%s^7 gave %s last life to %s^7!\n\"", ent->client->pers.netname, ent->client->sess.gender == 0 ? "his" : "her", target_entity->client->pers.netname));
+	}
+	else {
+		AP(va("chat \"%s^7 gave a life to %s^7!\n\"", ent->client->pers.netname, target_entity->client->pers.netname));
+		ent->client->ps.persistant[PERS_RESPAWNS_LEFT]--;
+	}
+
+	if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0 &&
+		target_entity->client->ps.pm_flags & PMF_LIMBO) {
+		respawn(target_entity);
+	}
+	else {
+		target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT]++;
+	}
+
+	ent->client->pers.give_life_revives -= g_giveLifeRequiredRevives.integer;
+	ent->client->pers.give_life_damage -= g_giveLifeRequiredDamage.integer;
+}
+
 #ifdef _DEBUG
 void Cmd_Test_f(gentity_t *ent)
 {
@@ -3946,6 +4102,7 @@ typedef struct {
 } player_command_t;
 
 static const player_command_t playerCommands[] = {
+	{ "givelife gl", "Gives a life to the target player", "/gl <player name>", Cmd_GiveLife_f, qfalse },
 	{ "fps", "Gives a rough estiamte of each player's FPS", "/fps", Cmd_DisplayFps_f, qfalse },
 	{ "colorflags cf", "Displays which color flags are enabled", "/colorflags", Cmd_ColorFlags_f, qfalse },
 	{ "nadepack np", "Drops 4 nade packs.", "/np", Cmd_DropNadePack_f, qfalse },

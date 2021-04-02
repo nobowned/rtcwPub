@@ -244,6 +244,9 @@ vmCvar_t	g_automg42Disable;		// Should the automg42 be disabled before destroyed
 vmCvar_t	g_automg42TowerCollapse;		// Should automg42 towers collapse?
 vmCvar_t	g_archiveLogDay;		// Archive console.log file at this day in the month (1-31).
 vmCvar_t	g_useSpawnAnglesAfterRevive;	// Use spawn angles after revive (kinda random feeling, but OG behavior).
+vmCvar_t	g_giveLife;				// Allows clients to give each other lives.
+vmCvar_t	g_giveLifeRequiredDamage;		// Damage required before a life can be given.
+vmCvar_t	g_giveLifeRequiredRevives;		// Revives required before a life can be given.
 
 // Modes
 vmCvar_t	g_deathmatch;			// Death Match
@@ -536,6 +539,9 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_readySystem, "g_readySystem", "0", 0, 0, qfalse },
 	{ &g_readyPlayers, "g_readySystem", "0", 0, 0, qfalse },
 	{ &g_useSpawnAnglesAfterRevive, "g_useSpawnAnglesAfterRevive", "0", 0, 0, qfalse },
+	{ &g_giveLife, "g_giveLife", "0", 0, 0, qfalse },
+	{ &g_giveLifeRequiredDamage, "g_giveLifeRequiredDamage", "0", 0, 0, qfalse },
+	{ &g_giveLifeRequiredRevives, "g_giveLifeRequiredRevives", "0", 0, 0, qfalse },
 
 	// Modes
 	{ &g_deathmatch, "g_deathmatch", "0", CVAR_ARCHIVE | CVAR_LATCH, 0, qtrue },

@@ -629,6 +629,10 @@ typedef struct {
 
 	int			timeInactive;  // kick players when timeInactive > inactivityCvar
 	qboolean	lastInactivityWarnTime; // Don't spam warn.
+
+	int			give_life_revives;
+	int			give_life_damage;
+	int			last_means_of_death;
 } clientPersistant_t;
 
 // L0 - antilag 
@@ -1264,6 +1268,7 @@ typedef struct {
 extern team_info teamInfo[TEAM_NUM_TEAMS];
 void G_swapTeamLocks( void );
 void handleTeamLocks( int team );
+int Team_CountLiveTeammates();
 
 //
 // g_mem.c
@@ -1497,6 +1502,9 @@ extern vmCvar_t		g_readySystem;
 extern vmCvar_t		g_readyPlayers;
 extern vmCvar_t		g_archiveLogDay;
 extern vmCvar_t		g_useSpawnAnglesAfterRevive;
+extern vmCvar_t		g_giveLife;
+extern vmCvar_t		g_giveLifeRequiredDamage;
+extern vmCvar_t		g_giveLifeRequiredRevives;
 
 // Game
 extern vmCvar_t		g_dropReload;
