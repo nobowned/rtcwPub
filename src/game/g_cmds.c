@@ -3891,19 +3891,6 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 		return;
 	}
 
-	if (Team_CountLiveTeammates(ent)) {
-		if (g_giveLifeRequiredDamage.integer && ent->client->pers.give_life_damage < g_giveLifeRequiredDamage.integer) {
-			int damage_required = g_giveLifeRequiredDamage.integer - ent->client->pers.give_life_damage;
-			CP(va("cp \"You must do ^3%d ^7more damage to enemies.\n\"", damage_required));
-			return;
-		}
-		if (g_giveLifeRequiredRevives.integer && ent->client->pers.give_life_revives < g_giveLifeRequiredRevives.integer) {
-			int revives_required = g_giveLifeRequiredRevives.integer - ent->client->pers.give_life_revives;
-			CP(va("cp \"You must revive ^3%d ^7teammate%s.\n\"", revives_required, revives_required > 1 ? "s" : ""));
-			return;
-		}
-	}
-
 	qboolean is_number = qtrue;
 	trap_Argv(1, argument, sizeof(argument));
 	for (i = 0; i < strlen(argument); ++i) {
@@ -3948,7 +3935,7 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 	}
 
 	if (ent->client->sess.sessionTeam != target_entity->client->sess.sessionTeam) {
-		CP("cp \"You can't give lives to enemy players.\n\"");
+		CP("cp \"You can only give lives to teammates.\n\"");
 		return;
 	}
 
@@ -3983,6 +3970,19 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 	if (has_max_lives) {
 		CP(va("cp \"%s ^7has the maximum amount of lives already.\n\"", target_entity->client->pers.netname));
 		return;
+	}
+
+	if (Team_CountLiveTeammates(ent)) {
+		if (g_giveLifeRequiredDamage.integer && ent->client->pers.give_life_damage < g_giveLifeRequiredDamage.integer) {
+			int damage_required = g_giveLifeRequiredDamage.integer - ent->client->pers.give_life_damage;
+			CP(va("cp \"You must do ^3%d ^7more damage to enemies.\n\"", damage_required));
+			return;
+		}
+		if (g_giveLifeRequiredRevives.integer && ent->client->pers.give_life_revives < g_giveLifeRequiredRevives.integer) {
+			int revives_required = g_giveLifeRequiredRevives.integer - ent->client->pers.give_life_revives;
+			CP(va("cp \"You must revive ^3%d ^7teammate%s.\n\"", revives_required, revives_required > 1 ? "s" : ""));
+			return;
+		}
 	}
 	
 	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0) {
