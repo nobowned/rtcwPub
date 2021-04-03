@@ -964,7 +964,7 @@ void FollowClient(gentity_t *ent, qboolean byName)
 
 	trap_Argv(1, arg, sizeof(arg));
 	if (byName) {
-		targetClientNumber = ClientNumberFromName(ent, arg, qtrue);
+		targetClientNumber = ClientNumberFromName(ent, arg);
 	}
 	else {
 		targetClientNumber = ClientNumberFromString(ent, arg);
@@ -3847,8 +3847,8 @@ void Cmd_DisplayServerUptime_f(gentity_t *ent) {
 }
 
 void Cmd_GiveLife_f(gentity_t *ent) {
-	char argument[ADMIN_ARG_SIZE];
 	int i;
+	char argument[ADMIN_ARG_SIZE];
 
 	if (trap_Argc() < 2) {
 		// TODO: Automatically choose someone on their team to give a life to.
@@ -3887,84 +3887,67 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 		return;
 	}
 
-	qboolean is_number = qtrue;
 	trap_Argv(1, argument, sizeof(argument));
-	for (i = 0; i < strlen(argument); ++i) {
-		if (!isdigit(argument[i])) {
-			is_number = qfalse;
+
+	cn_from_name_search_options_t options;
+	options.send_error_messages = qfalse;
+	options.teammates_only = qtrue;
+	options.skip_self = qtrue;
+	cn_from_name_result_t search_result = ClientNumberFromNameWithOptions(ent, argument, options);
+	switch (search_result.error) {
+	case ERROR_NO_MATCH:
+		CP(va("cp \"Couldn't find a teammate with ^3%s ^7in their name.\n\"", argument));
+		return;
+	case ERROR_TOO_MANY_MATCHES:
+	case ERROR_NONE:
+		break;
+	}
+
+	gentity_t *target_entity = NULL;
+	int does_not_have_max_lives_count = 0;
+	for (i = 0; i < search_result.client_nums_count; ++i) {
+		gentity_t *check = g_entities + search_result.client_nums[i];
+		qboolean has_max_lives = qfalse;
+		switch (check->client->sess.sessionTeam) {
+		case TEAM_BLUE:
+			if (g_alliedmaxlives.integer) {
+				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_alliedmaxlives.integer - 1) {
+					has_max_lives = qtrue;
+				}
+			}
+			else if (g_maxlives.integer) {
+				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
+					has_max_lives = qtrue;
+				}
+			}
+			break;
+		case TEAM_RED:
+			if (g_axismaxlives.integer) {
+				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_axismaxlives.integer - 1) {
+					has_max_lives = qtrue;
+				}
+			}
+			else if (g_maxlives.integer) {
+				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
+					has_max_lives = qtrue;
+				}
+			}
 			break;
 		}
-	}
 
-	int target_client_num;
-	if (is_number) {
-		target_client_num = atoi(argument);
-		if (target_client_num < 0 || target_client_num >= MAX_CLIENTS) {
-			CP(va("cp \"^3%d ^7is an invalid client number.\n\"", target_client_num));
-			return;
-		}
-		qboolean does_client_num_match_connected_client = qfalse;
-		for (i = 0; i < level.numConnectedClients; ++i) {
-			if (target_client_num == level.sortedClients[i]) {
-				does_client_num_match_connected_client = qtrue;
-				break;
-			}
-		}
-		if (!does_client_num_match_connected_client) {
-			CP(va("cp \"Couldn't find anyone with client number ^3%d^7.\n\"", target_client_num));
-			return;
-		}
-	}
-	else {
-		target_client_num = ClientNumberFromName(ent, argument, qfalse);
-		if (target_client_num == -1) {
-			CP(va("cp \"Couldn't find anyone with %s ^7in their name.\n\"", argument));
-			return;
+		if (!has_max_lives) {
+			does_not_have_max_lives_count++;
+			target_entity = check;
 		}
 	}
 
-	gentity_t *target_entity = g_entities + target_client_num;
-
-	if (ent == target_entity) {
-		CP("cp \"You can't give lives to yourself. Nice try.\n\"");
+	if (does_not_have_max_lives_count > 1) {
+		CP(va("cp \"There are too many teammates with ^3%s ^7in their name.\n\"", argument));
 		return;
 	}
 
-	if (ent->client->sess.sessionTeam != target_entity->client->sess.sessionTeam) {
-		CP("cp \"You can only give lives to teammates.\n\"");
-		return;
-	}
-
-	qboolean has_max_lives = qfalse;
-	switch (target_entity->client->sess.sessionTeam) {
-	case TEAM_BLUE:
-		if (g_alliedmaxlives.integer) {
-			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_alliedmaxlives.integer - 1) {
-				has_max_lives = qtrue;
-			}
-		}
-		else if (g_maxlives.integer) {
-			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
-				has_max_lives = qtrue;
-			}
-		}
-		break;
-	case TEAM_RED:
-		if (g_axismaxlives.integer) {
-			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_axismaxlives.integer - 1) {
-				has_max_lives = qtrue;
-			}
-		}
-		else if (g_maxlives.integer) {
-			if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
-				has_max_lives = qtrue;
-			}
-		}
-		break;
-	}
-
-	if (has_max_lives) {
-		CP(va("cp \"%s ^7has the maximum amount of lives already.\n\"", target_entity->client->pers.netname));
+	if (target_entity == NULL) {
+		CP(va("cp \"%s ^7has the maximum amount of lives already.\n\"", g_entities[search_result.client_nums[0]].client->pers.netname));
 		return;
 	}
 

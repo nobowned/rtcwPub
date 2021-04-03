@@ -155,61 +155,85 @@ int ClientNumbersFromName(char *name, int *matches) {
 
 /*
 ===========
-Get client number from name
+ClientNumberFromNameWithOptions
 ===========
 */
-int ClientNumberFromName(gentity_t *ent, char *name, qboolean send_error_message) {
+cn_from_name_result_t ClientNumberFromNameWithOptions(gentity_t *ent, char *name, cn_from_name_search_options_t options) {
 	int i, textLen;
 	char nm[MAX_NETNAME];
 	char c;
-	int count = 0;
-	int matches[MAX_CLIENTS];
+	cn_from_name_result_t result;
 
+	memset(&result, 0, sizeof(cn_from_name_result_t));
 	Q_strncpyz(nm, name, sizeof(nm));
 	Q_CleanStr(nm);
 	textLen = strlen(nm);
 	c = *nm;
 
-	for (i = 0; i < level.maxclients; i++)
-	{
+	for (i = 0; i < level.maxclients; i++) {
 		int j, len;
 		char playerName[MAX_NETNAME];
 
-		if ((!g_entities[i].client) || (g_entities[i].client->pers.connected != CON_CONNECTED))
-			continue;
+		gentity_t *other = g_entities + i;
 
-		Q_strncpyz(playerName, g_entities[i].client->pers.netname, sizeof(playerName));
+		if ((!other->client) || (other->client->pers.connected != CON_CONNECTED)) {
+			continue;
+		}
+
+		if (options.skip_self && ent == other) {
+			continue;
+		}
+
+		if (options.teammates_only && (other->client->sess.sessionTeam != ent->client->sess.sessionTeam)) {
+			continue;
+		}
+
+		Q_strncpyz(playerName, other->client->pers.netname, sizeof(playerName));
 		Q_CleanStr(playerName);
 		len = strlen(playerName);
 
-		for (j = 0; j < len; j++)
-		{
-			if (tolower(c) == tolower(playerName[j]))
-			{
-				if (!Q_stricmpn(nm, playerName + j, textLen))
-				{
-					matches[count] = i;
-					count++;
+		for (j = 0; j < len; j++) {
+			if (tolower(c) == tolower(playerName[j])) {
+				if (!Q_stricmpn(nm, playerName + j, textLen)) {
+					result.client_nums[result.client_nums_count++] = i;
 					break;
 				}
 			}
 		}
 	}
 
-	if (count == 0) {
-		if (send_error_message) {
+	if (result.client_nums_count == 0) {
+		if (options.send_error_messages) {
 			CP(va("print \"There aren't any clients with ^1%s ^7in their name^1!\n\"", name));
 		}
-		return -1;
+		result.error = ERROR_NO_MATCH;
+		return result;
 	}
-	else if (count > 1) {
-		if (send_error_message) {
+	else if (result.client_nums_count > 1) {
+		if (options.send_error_messages) {
 			CP(va("print \"Too many clients with ^1%s ^7in their name^1!\n\"", name));
 		}
-		return -1;
+		result.error = ERROR_TOO_MANY_MATCHES;
+		return result;
 	}
 
-	return matches[0];
+	result.error = ERROR_NONE;
+	return result;
+}
+
+/*
+===========
+ClientNumberFromName
+===========
+*/
+int ClientNumberFromName(gentity_t *ent, char *name) {
+	cn_from_name_search_options_t options;
+	options.send_error_messages = qtrue;
+	options.teammates_only = qfalse;
+	options.skip_self = qfalse;
+	cn_from_name_result_t result = ClientNumberFromNameWithOptions(ent, name, options);
+	if (result.error != ERROR_NONE) return -1;
+	return result.client_nums[0];
 }
 
 gentity_t *GetClientEntity(gentity_t *ent, char *cNum, gentity_t **found)

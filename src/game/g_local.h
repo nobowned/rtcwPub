@@ -468,6 +468,24 @@ typedef enum {
 	IGNORE_TEMPORARY
 } ignoreState_t;
 
+typedef struct {
+	qboolean teammates_only;
+	qboolean send_error_messages;
+	qboolean skip_self;
+} cn_from_name_search_options_t;
+
+typedef enum {
+	ERROR_NONE,
+	ERROR_NO_MATCH,
+	ERROR_TOO_MANY_MATCHES
+} cn_from_name_error_t;
+
+typedef struct {
+	int client_nums[MAX_CLIENTS];
+	int client_nums_count;
+	cn_from_name_error_t error;
+} cn_from_name_result_t;
+
 // client data that stays across multiple levels or tournament restarts
 // this is achieved by writing all the data to cvar strings at game shutdown
 // time and reading them back at connection time.  Anything added here
