@@ -3801,7 +3801,6 @@ int CompareFpsMatches(const void *fps_match1, const void *fps_match2) {
 }
 
 void Cmd_DisplayFps_f(gentity_t *ent) {
-	gentity_t *entity;
 	int i, client_num, fps_matches_count;
 	fps_match_t fps_matches[MAX_CLIENTS];
 	fps_match_t *fps_match;
@@ -3810,27 +3809,34 @@ void Cmd_DisplayFps_f(gentity_t *ent) {
 
 	for (i = 0; i < level.numConnectedClients; ++i) {
 		client_num = level.sortedClients[i];
-		entity = g_entities + client_num;
+		gentity_t * entity = g_entities + client_num;
 		fps_match = fps_matches + fps_matches_count++;
 		fps_match->client_num = client_num;
 		fps_match->average_msec = ClientGetMsec(&entity->client->ps);
 		fps_match->fps = ClientGetFps(&entity->client->ps);
 	}
 
-	CP("print \"\n^3-----------------------------\n\"");
-	CP("print \"^7Name            : ^3Fps ^7: Msec \n\"");
-	CP("print \"^3-----------------------------\n\"");
+	CP("print \"\n^3--------------------------------------------------------------------------\n\"");
+	CP("print \"^7Name            ^3: Fps : ^7Msec ^3: ^7Rate  ^3: ^7Snaps ^3: ^7Map Download ^3: ^7Rate Delayed\n\"");
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
 
 	if (fps_matches_count > 0) {
 		qsort(fps_matches, fps_matches_count, sizeof(fps_match_t), CompareFpsMatches);
 		for (i = 0; i < fps_matches_count; ++i) {
 			fps_match = fps_matches + i;
-			entity = g_entities + fps_match->client_num;
-			CP(va("print \"%s^7 : ^3%-3d ^7: %-3d\n\"", TablePrintableColorName(entity->client->pers.netname, 15), fps_match->fps, fps_match->average_msec));
+			gclient_t *cl = level.clients + fps_match->client_num;
+			CP(va("print \"^7%s^7 ^3: %-3d : ^7%-4d ^3: ^7%-5d ^3: ^7%-5d ^3: ^7%-12s ^3: ^7%-12s\n\"", 
+				TablePrintableColorName(cl->pers.netname, 15),
+				fps_match->fps, 
+				fps_match->average_msec,
+				trap_GetClientRate(fps_match->client_num),
+				trap_GetClientSnaps(fps_match->client_num),
+				trap_IsClientDownloadingMap(fps_match->client_num) ? "Yes" : "No",
+				trap_IsClientRateDelayed(fps_match->client_num) ? "Yes" : "No"));
 		}
 	}
 
-	CP("print \"^3-----------------------------\n\"");
+	CP("print \"^3--------------------------------------------------------------------------\n\"");
 }
 
 void Cmd_DisplayServerUptime_f(gentity_t *ent) {
@@ -3996,6 +4002,24 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 	ent->client->pers.give_life_damage -= g_giveLifeRequiredDamage.integer;
 }
 
+void Cmd_ListTeammateRespawnCount_f(gentity_t *ent) {
+	int i;
+	gclient_t *cl;
+
+	if (!g_allowRespawnListing.integer) {
+		CP("cp \"Seeing teammate respawns is disabled.\n\"");
+		return;
+	}
+
+	for (i = 0; i < level.numPlayingClients; ++i) {
+		cl = level.clients + level.sortedClients[i];
+		if (cl->sess.sessionTeam != ent->client->sess.sessionTeam) continue;
+		int respawns_left = cl->ps.persistant[PERS_RESPAWNS_LEFT];
+		qboolean is_skulled = cl->ps.pm_flags & PMF_LIMBO && respawns_left == 0;
+		CP(va("print \"%-3s ^3: ^7%s\n\"", is_skulled ? "^1--" : va("^5x%d", respawns_left), cl->pers.netname));
+	}
+}
+
 #ifdef _DEBUG
 void Cmd_Test_f(gentity_t *ent)
 {
@@ -4092,14 +4116,15 @@ typedef struct {
 } player_command_t;
 
 static const player_command_t playerCommands[] = {
+	{ "respawns lives", "Lists the amount of respawns for every teammate", "/respawns", Cmd_ListTeammateRespawnCount_f, qfalse },
 	{ "givelife gl", "Gives a life to the target player", "/gl <player name>", Cmd_GiveLife_f, qfalse },
 	{ "fps", "Gives a rough estiamte of each player's FPS", "/fps", Cmd_DisplayFps_f, qfalse },
 	{ "colorflags cf", "Displays which color flags are enabled", "/colorflags", Cmd_ColorFlags_f, qfalse },
-	{ "nadepack np", "Drops 4 nade packs.", "/np", Cmd_DropNadePack_f, qfalse },
-	{ "mini_automg42 mini", "Drops a mini automg42 on the ground. Must be an engineer, and g_automg42 > 0.", "/mini", Cmd_MiniAutomg42_f, qfalse },
-	{ "automg42", "Drops an automg42 on the ground. Must be an engineer, and g_automg42 > 0.", "/automg42", Cmd_Automg42_f, qfalse },
+	{ "nadepack np", "Drops 4 nade packs", "/np", Cmd_DropNadePack_f, qfalse },
+	{ "mini_automg42 mini", "Drops a mini automg42 on the ground. Must be an engineer, and g_automg42 > 0", "/mini", Cmd_MiniAutomg42_f, qfalse },
+	{ "automg42", "Drops an automg42 on the ground. Must be an engineer, and g_automg42 > 0", "/automg42", Cmd_Automg42_f, qfalse },
 	{ "dropreload dr", "Shows the drop reload script in console", "/dropreload", Cmd_DropReload_f, qtrue },
-	{ "mute", "Mutes client number provided until you leave the server.", "/mute <client number>", Cmd_Mute_f, qfalse },
+	{ "mute", "Mutes client number provided until you leave the server", "/mute <client number>", Cmd_Mute_f, qfalse },
 	{ "unmute", "Unmutes client number provided", "/unmute <client number>", Cmd_Unmute_f, qfalse },
 	{ "muted", "Displays a list of clients you have muted", "/muted", Cmd_PrintMuted_f, qfalse },
 	{ "mute_all", "Mutes every client number (0-63)", "", Cmd_MuteAll_f, qfalse },
@@ -4146,8 +4171,8 @@ static const player_command_t playerCommands[] = {
 	{ "callvote", "Calls a vote", "/callvote <command name> <command argument>", Cmd_CallVote_f, qfalse },
 	{ "vote", "Used to submit TK complaint or a vote", "/vote <y/Y/1/(any other value is no)>", Cmd_Vote_f, qfalse },
 	{ "setviewpos svp", "Changes your view angles", "/setviewpos <pitch> <yaw> <roll>", Cmd_SetViewpos_f, qfalse },
-	{ "touched_ents te", "Displays amount of entity slots that have been used.", "", Cmd_TouchedEntityCount_f, qfalse },
-	{ "live_ents le", "Displays amount of live entities.", "", Cmd_LiveEntityCount_f, qfalse },
+	{ "touched_ents te", "Displays amount of entity slots that have been used", "", Cmd_TouchedEntityCount_f, qfalse },
+	{ "live_ents le", "Displays amount of live entities", "", Cmd_LiveEntityCount_f, qfalse },
 	{ "setspawnpt", "Sets the location of your next spawn", "/setspawnpt <0-15>", Cmd_SetSpawnPoint_f, qfalse },
 	{ "more", "Displays the next several items (command dependent)", "/more", Cmd_More_f, qfalse },
 	{ "smoke sg", "Throws smoke grenade (must be LT)", "/smoke or /sg", Cmd_Smoke, qfalse },

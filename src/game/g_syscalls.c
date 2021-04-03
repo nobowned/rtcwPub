@@ -254,6 +254,22 @@ int trap_GetClientProtocol(int clientNum) {
 	return syscall(G_GET_CLIENT_PROTOCOL, clientNum);
 }
 
+int trap_GetClientRate(int clientNum) {
+	return syscall(G_GET_CLIENT_RATE, clientNum);
+}
+
+int trap_GetClientSnaps(int clientNum) {
+	return syscall(G_GET_CLIENT_SNAPS, clientNum);
+}
+
+int trap_IsClientDownloadingMap(int clientNum) {
+	return syscall(G_GET_CLIENT_DOWNLOADING_MAP, clientNum);
+}
+
+int trap_IsClientRateDelayed(int clientNum) {
+	return syscall(G_GET_CLIENT_RATE_DELAYED, clientNum);
+}
+
 void trap_SetClientName(int clientNum, char *name) {
 	syscall(G_SET_CLIENT_NAME, clientNum, name);
 }

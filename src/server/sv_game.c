@@ -156,6 +156,78 @@ int SV_GetClientProtocol(int clientNum) {
 
 /*
 ===============
+SV_GetClientRate
+
+Called from game module to get a clients rate (what the server allowed and stored, not necessarily what's in their userinfo string).
+===============
+*/
+int SV_GetClientRate(int clientNum) {
+	client_t *cl;
+
+	if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
+		return 0;
+	}
+
+	cl = svs.clients + clientNum;
+	return cl->rate;
+}
+
+/*
+===============
+SV_GetClientSnaps
+
+Called from game module to get a clients snaps (what the server allowed and stored, not necessarily what's in their userinfo string).
+===============
+*/
+int SV_GetClientSnaps(int clientNum) {
+	client_t *cl;
+
+	if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
+		return 0;
+	}
+
+	cl = svs.clients + clientNum;
+	return 1000 / cl->snapshotMsec;
+}
+
+/*
+===============
+SV_IsClientDownloadingMap
+
+Called from game module to see if a client is downloading a map.
+===============
+*/
+int SV_IsClientDownloadingMap(int clientNum) {
+	client_t *cl;
+
+	if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
+		return 0;
+	}
+
+	cl = svs.clients + clientNum;
+	return *cl->downloadName;
+}
+
+/*
+===============
+SV_IsClientRateDelayed
+
+Called from game module to see if a client is rate delayed (server is struggling to send data to client).
+===============
+*/
+int SV_IsClientRateDelayed(int clientNum) {
+	client_t *cl;
+
+	if (clientNum < 0 || clientNum >= sv_maxclients->integer) {
+		return 0;
+	}
+
+	cl = svs.clients + clientNum;
+	return cl->rateDelayed;
+}
+
+/*
+===============
 SV_GetClientCountryName
 
 Called from game module to get a clients country name using the geoip database.
@@ -579,6 +651,14 @@ int SV_GameSystemCalls( int *args ) {
 		return 0;
 	case G_GET_CLIENT_PROTOCOL:
 		return SV_GetClientProtocol(args[1]);
+	case G_GET_CLIENT_RATE:
+		return SV_GetClientRate(args[1]);
+	case G_GET_CLIENT_SNAPS:
+		return SV_GetClientSnaps(args[1]);
+	case G_GET_CLIENT_DOWNLOADING_MAP:
+		return SV_IsClientDownloadingMap(args[1]);
+	case G_GET_CLIENT_RATE_DELAYED:
+		return SV_IsClientRateDelayed(args[1]);
 	case G_SET_CLIENT_NAME:
 		SV_SetClientName(args[1], VMA(2));
 		return 0;

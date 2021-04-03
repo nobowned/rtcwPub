@@ -1516,6 +1516,7 @@ extern vmCvar_t		g_useSpawnAnglesAfterRevive;
 extern vmCvar_t		g_giveLife;
 extern vmCvar_t		g_giveLifeRequiredDamage;
 extern vmCvar_t		g_giveLifeRequiredRevives;
+extern vmCvar_t		g_allowRespawnListing;
 
 // Game
 extern vmCvar_t		g_dropReload;
@@ -1686,6 +1687,10 @@ void trap_AppendEntityString(char *fileName);
 void trap_FreeEntityString(void);
 void trap_GetClientIp(int clientNum, char *ip_out, int ip_out_length);
 int trap_GetClientProtocol(int clientNum);
+int trap_GetClientRate(int clientNum);
+int trap_GetClientSnaps(int clientNum);
+int trap_IsClientDownloadingMap(int clientNum);
+int trap_IsClientRateDelayed(int clientNum);
 void trap_SetClientName(int clientNum, char *name);
 void trap_GetClientCountryName(int clientNum, char* country_name, int country_name_length);
 void trap_LogToFile(char* q_path, char* message);
