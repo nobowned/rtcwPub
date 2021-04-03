@@ -494,31 +494,37 @@ void cmd_allied(gentity_t *ent) {
 Forces player to specified team
 ===========
 */
-void cmd_forceteam(gentity_t *ent)
-{
+void cmd_forceteam(gentity_t *ent) {
+	char client_name[ADMIN_ARG_SIZE];
 	char team[ADMIN_ARG_SIZE];
+	int client_num;
+	gentity_t *targ;
 
-	trap_Argv(1, team, sizeof(team));
+	trap_Argv(1, client_name, sizeof(client_name));
+	client_num = ClientNumberFromName(ent, client_name, qtrue);
+	if (client_num == -1) {
+		return;
+	}
+	targ = g_entities + client_num;
+
+	trap_Argv(2, team, sizeof(team));
 
 	if (!strcmp(team, "s") ||
 		!strcmp(team, "spec") ||
 		!strcmp(team, "spectator")) {
-		CP("print \"!forceteam is deprecated. Use !specs or !s instead.\n\"");
+		cmd_specs2(ent, targ);
 	}
 	else if (
 		!strcmp(team, "axis") ||
 		!strcmp(team, "red") ||
 		!strcmp(team, "r")) {
-		CP("print \"!forceteam is deprecated. Use !axis or !r instead.\n\"");
+		cmd_axis2(ent, targ);
 	}
 	else if (
 		!strcmp(team, "allies") ||
 		!strcmp(team, "blue") ||
 		!strcmp(team, "b")) {
-		CP("print \"!forceteam is deprecated. Use !allies or !b instead.\n\"");
-	}
-	else {
-		CP("print \"!forceteam is deprecated. Use !axis/!allies/!specs instead.\n\"");
+		cmd_allied2(ent, targ);
 	}
 }
 
