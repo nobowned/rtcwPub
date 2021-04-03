@@ -1142,11 +1142,7 @@ void stats_DisplayDailyStats(gentity_t *ent)
 			player->stats.revives,
 			statcolor,
 			playeracc,
-			player->stats.headshots,
-			statcolor,
-			player->stats.dmgGiven,
-			player->stats.dmgReceived,
-			player->stats.dmgTeam));
+			player->stats.headshots));
 
 		if (count == moreCount && (i + 1) != ranked) {
 			more = qtrue;
