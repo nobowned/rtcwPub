@@ -3282,7 +3282,7 @@ void cmd_login(gentity_t *ent) {
 			trap_LogToFile(ADMLOG, log);
 	}
 	else {
-		AP(va("chat \"^7console: %s ^7logged in as %s^7!\n\"", ent->client->pers.netname, getMessage(ent)));
+		AP(va("chat \"^7console: %s%s\n\"", ent->client->pers.netname, getMessage(ent)));
 
 		// Log it
 		log = va("Time: %s\nPlayer %s (IP: %s) logged in as %s.%s",

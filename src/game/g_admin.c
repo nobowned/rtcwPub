@@ -103,7 +103,7 @@ char *getMessage(gentity_t *ent) {
 		message = "";
 
 	if (!strlen(message)) {
-		return getTag(ent);
+		return va(" ^7logged in as %s^7!", getTag(ent));
 	}
 
 	return va("%s", message);
@@ -311,7 +311,7 @@ static const admin_cmd_t admin_cmd_list[] = {
 	{ "vstr", cmd_vstr, "Loads a level from rotation file. Note - You need to know rotation labels..", "!vstr map1" },
 	{ "renameon", cmd_renameon, "Restores ability to rename from client.", "!renameon <client number>" },
 	{ "renameoff", cmd_renameoff, "Revokes ability to rename from client (lasts only that round).", "!renameoff <client number>" },
-	{ "forceteam", cmd_forceteam, "Forces player to specified team.", "!forceteam <unique part of name> <axis/allies/spec>" },
+	{ "forceteam", cmd_forceteam, "Forces player to specified team.", "!forceteam <unique part of name> <axis/allies/spec>", "ft" },
 	{ "forceclient", cmd_forceteam_client, "Forces player to specified team using client number.", "!forceclient <client number> <axis/allies/spec>" },
 	{ "sortclans", cmd_sortClans, "Sorts the two clans passed in.", "!sortclans <clan 1> <clan 2>", "sc" },
 	{ "cleardaily", cmd_clearDaily, "Clears the daily rankings", "!cleardaily", "clear_daily" },
