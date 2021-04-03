@@ -322,12 +322,11 @@ void stats_MatchInfo(void) {
 		tot_shots = 0;
 		tot_acc = 0;
 		tot_revives = 0;
-
 		AP(va("print \"%s%s ^7Team%s\n"
 			"^3-----------------------------------------------------------------------------\n"
 			"^3Player Name          ^3: ^3K   D   G   TK  R   ^3: ^3Acc    HS  ^3: ^3DG     DR     TD   \n"
 			"^3-----------------------------------------------------------------------------\n\"", 
-			is_winning_team ? va("^3* ", 20, 18) : "", (i == TEAM_RED) ? "^1Axis" : "^4Allies", is_winning_team ? va(" ^3*", 20, 18) : ""));
+			is_winning_team ? S_COLOR_CYAN "* " : "", (i == TEAM_RED) ? S_COLOR_RED "Axis" : S_COLOR_BLUE "Allies", is_winning_team ? S_COLOR_CYAN " *" : ""));
 
 		for (teamcnt = 0, j = 0; j < level.numPlayingClients; j++) {
 			cl = level.clients + level.sortedClients[j];
