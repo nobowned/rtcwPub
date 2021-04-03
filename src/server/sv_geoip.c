@@ -291,8 +291,6 @@ char *GeoIP_GetCountryName(int clientNum) {
 		return UNKNOWN_COUNTRY_NAME;
 	}
 
-	Q_strncpyz(ip, "76.27.83.200", sizeof(ip));
-
 	packed_ip = Q_GetPackedIpAddress(ip);
 
 	for (depth = 31; depth >= 0; depth--) {
