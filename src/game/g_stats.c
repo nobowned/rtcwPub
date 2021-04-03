@@ -1114,7 +1114,7 @@ void stats_DisplayDailyStats(gentity_t *ent)
 	if (!ent->moreCalled) {
 		ent->moreCalls = 0;
 	}
-	CP("print \"\n^3Rank ^7| Player Name          ^3| ^7K    D    G    TK   R    ^3| ^7Acc    HS   ^3| ^7DG    \n"
+	CP("print \"\n^3Rank ^7| Player Name     ^3| ^7IP          ^3| ^7K    D    G    TK   R    ^3| ^7Acc    HS  \n"
 		"^3-----------------------------------------------------------------------------\n\"");
 
 	for (count = 1, i = (ent->moreCalls * moreCount); i < ranked; i++, count++) {
@@ -1129,9 +1129,11 @@ void stats_DisplayDailyStats(gentity_t *ent)
 
 		float playeracc = ((player->stats.acc_shots == 0) ? 0.00f : ((float)player->stats.acc_hits / (float)player->stats.acc_shots) * 100.00f);
 
-		CP(va("print \"^3%4d ^3| ^7%s ^3| %s%-4d %-4d %-4d %-4d %-4d ^3| %s%-6.2f %-4d ^3| %s%-6d\n\"",
+		CP(va("print \"^3%4d ^3| ^7%s ^3| %s%-11s ^3| %s%-4d %-4d %-4d %-4d %-4d ^3| %s%-6.2f %-4d\n\"",
 			(i + 1),
-			TablePrintableColorName(player->name, 20),
+			TablePrintableColorName(player->name, 15),
+			statcolor,
+			Q_GetUnpackedIpAddress(player->ip, qfalse),
 			statcolor,
 			player->stats.kills,
 			player->stats.deaths,
