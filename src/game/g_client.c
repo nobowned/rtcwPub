@@ -591,8 +591,7 @@ reinforce
 // -- called when time expires for a team deployment cycle and there is at least one guy ready to go
 */
 void reinforce(gentity_t *ent) {
-	int p, team;// numDeployable=0, finished=0; // TTimo unused
-	char *classname;
+	int p;
 	gclient_t *rclient;
 
 	if (g_gametype.integer == GT_SINGLE_PLAYER) {
@@ -603,17 +602,6 @@ void reinforce(gentity_t *ent) {
 		G_Printf("player already deployed, skipping\n");
 		return;
 	}
-	// get team to deploy from passed entity
-
-	team = ent->client->sess.sessionTeam;
-
-	// find number active team spawnpoints
-	if (team == TEAM_RED)
-		classname = "team_CTF_redspawn";
-	else if (team == TEAM_BLUE)
-		classname = "team_CTF_bluespawn";
-	else
-		assert(0);
 
 	// DHM - Nerve :: restore persistant data now that we're out of Limbo
 	rclient = ent->client;
@@ -688,7 +676,7 @@ TeamCount
 Returns number of players on a team
 ================
 */
-team_t TeamCount( int ignoreClientNum, int team ) {
+int TeamCount( int ignoreClientNum, int team ) {
 	int		i;
 	int		count = 0;
 
@@ -707,6 +695,53 @@ team_t TeamCount( int ignoreClientNum, int team ) {
 	return count;
 }
 // -NERVE - SMF
+
+qboolean ClientHasMaxLives(gclient_t *client) {
+	switch (client->sess.sessionTeam) {
+	case TEAM_BLUE:
+		if (g_alliedmaxlives.integer) {
+			if (client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_alliedmaxlives.integer - 1) {
+				return qtrue;
+			}
+		}
+		else if (g_maxlives.integer) {
+			if (client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
+				return qtrue;
+			}
+		}
+		break;
+	case TEAM_RED:
+		if (g_axismaxlives.integer) {
+			if (client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_axismaxlives.integer - 1) {
+				return qtrue;
+			}
+		}
+		else if (g_maxlives.integer) {
+			if (client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
+				return qtrue;
+			}
+		}
+	}
+	return qfalse;
+}
+
+void GibClient(gentity_t *target, gentity_t *attacker) {
+	int contents = trap_PointContents(target->r.currentOrigin, -1);
+	if (!(contents & CONTENTS_NODROP)) {
+		TossClientItems(target);
+	}
+
+	target->flags &= ~FL_GODMODE;
+	target->client->ps.stats[STAT_HEALTH] = target->health = 0;
+	target->client->ps.persistant[PERS_HWEAPON_USE] = 0; // TTimo - if using /kill while at MG42
+
+	contents = trap_PointContents(target->r.currentOrigin, -1);
+	if (!(contents & CONTENTS_NODROP)) {
+		TossClientItems(target);
+	}
+
+	G_Damage(target, attacker, attacker, NULL, NULL, 10000, DAMAGE_NO_PROTECTION, MOD_SELFKILL);
+}
 
 /*
 ================

@@ -514,12 +514,11 @@ Cmd_Gib_f
 */
 void Cmd_Gib_f( gentity_t *ent ) {
 	gentity_t *attacker;
-	int contents;
 
-	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+	if (ent->client->sess.sessionTeam == TEAM_SPECTATOR) {
 		return;
 	}
-	if ( g_gametype.integer >= GT_WOLF && ent->client->ps.pm_flags & PMF_LIMBO ) {
+	if (g_gametype.integer >= GT_WOLF && ent->client->ps.pm_flags & PMF_LIMBO) {
 		return;
 	}
 	if (g_ffa.integer) {
@@ -549,21 +548,12 @@ void Cmd_Gib_f( gentity_t *ent ) {
 		return;
 	}
 
-	ent->flags &= ~FL_GODMODE;
-	ent->client->ps.stats[STAT_HEALTH] = ent->health = 0;
-	ent->client->ps.persistant[PERS_HWEAPON_USE] = 0; // TTimo - if using /kill while at MG42
-
-	contents = trap_PointContents(ent->r.currentOrigin, -1);
-	if (!(contents & CONTENTS_NODROP)) {
-		TossClientItems(ent);
-	}
-
 	if (ent->client->ps.pm_type != PM_DEAD) {
 		ent->client->pers.stats.suicides++;
 		stats_StoreRoundStat(ent->client->pers.netname, ent->client->pers.stats.suicides, ROUND_SUICIDES);
 	}
 
-	G_Damage(ent, ent, ent, NULL, NULL, 10000, DAMAGE_NO_PROTECTION, MOD_SELFKILL);
+	GibClient(ent, ent);
 }
 
 /*
@@ -3850,6 +3840,10 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 	int i;
 	char argument[ADMIN_ARG_SIZE];
 
+	if (level.paused) {
+		return;
+	}
+
 	if (trap_Argc() < 2) {
 		// TODO: Automatically choose someone on their team to give a life to.
 		// Possibly sort/choose teammate based on:
@@ -3907,35 +3901,7 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 	int does_not_have_max_lives_count = 0;
 	for (i = 0; i < search_result.client_nums_count; ++i) {
 		gentity_t *check = g_entities + search_result.client_nums[i];
-		qboolean has_max_lives = qfalse;
-		switch (check->client->sess.sessionTeam) {
-		case TEAM_BLUE:
-			if (g_alliedmaxlives.integer) {
-				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_alliedmaxlives.integer - 1) {
-					has_max_lives = qtrue;
-				}
-			}
-			else if (g_maxlives.integer) {
-				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
-					has_max_lives = qtrue;
-				}
-			}
-			break;
-		case TEAM_RED:
-			if (g_axismaxlives.integer) {
-				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_axismaxlives.integer - 1) {
-					has_max_lives = qtrue;
-				}
-			}
-			else if (g_maxlives.integer) {
-				if (check->client->ps.persistant[PERS_RESPAWNS_LEFT] >= g_maxlives.integer - 1) {
-					has_max_lives = qtrue;
-				}
-			}
-			break;
-		}
-
-		if (!has_max_lives) {
+		if (!ClientHasMaxLives(check->client)) {
 			does_not_have_max_lives_count++;
 			target_entity = check;
 		}
@@ -3965,17 +3931,18 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 	}
 	
 	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0) {
-		Cmd_Gib_f(ent);
+		GibClient(ent, NULL);
 		AP(va("chat \"%s^7 gave %s last life to %s^7!\n\"", ent->client->pers.netname, ent->client->sess.gender == 0 ? "his" : "her", target_entity->client->pers.netname));
 	}
 	else {
 		AP(va("chat \"%s^7 gave a life to %s^7!\n\"", ent->client->pers.netname, target_entity->client->pers.netname));
 		ent->client->ps.persistant[PERS_RESPAWNS_LEFT]--;
+		ent->client->saved_persistant[PERS_RESPAWNS_LEFT]--;
 	}
 
 	if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0 &&
 		target_entity->client->ps.pm_flags & PMF_LIMBO) {
-		respawn(target_entity);
+		reinforce(target_entity);
 	}
 	else {
 		target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT]++;

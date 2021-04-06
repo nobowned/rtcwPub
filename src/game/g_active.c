@@ -1325,7 +1325,6 @@ gentity_t *G_DropWeapon(gentity_t *ent, trace_t *tr) {
 }
 
 void limbo( gentity_t *ent, qboolean makeCorpse ); // JPW NERVE
-void reinforce (gentity_t *ent ); // JPW NERVE
 
 void ClientDamage( gentity_t *clent, int entnum, int enemynum, int id );		// NERVE - SMF
 

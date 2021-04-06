@@ -1206,7 +1206,7 @@ void CalcMuzzlePointForActivate ( gentity_t *ent, vec3_t forward, vec3_t right, 
 //
 // g_client.c
 //
-team_t TeamCount( int ignoreClientNum, int team );			// NERVE - SMF - merge from team arena
+int TeamCount( int ignoreClientNum, int team );			// NERVE - SMF - merge from team arena
 team_t PickTeam( int ignoreClientNum );
 void SetClientViewAngle( gentity_t *ent, vec3_t angle );
 gentity_t *SelectRandomSpawnPoint( vec3_t avoidPoint, vec3_t origin, vec3_t angles );
@@ -1214,8 +1214,6 @@ gentity_t *SelectSpawnPoint(vec3_t origin, vec3_t angles);
 gentity_t *SelectCyclicSpawnPoint(vec3_t origin, vec3_t angles);
 void respawn (gentity_t *ent);
 void BeginIntermission (void);
-void InitClientPersistant (gclient_t *client);
-void InitClientResp (gclient_t *client);
 void InitBodyQue (void);
 void ClientSpawn( gentity_t *ent, qboolean revived );
 void player_die (gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod);
@@ -1225,6 +1223,9 @@ qboolean SpotWouldConflict(gentity_t *spot);
 char *clientIP(gentity_t *ent, qboolean full);
 int ClientGetFps(playerState_t *ps);
 int ClientGetMsec(playerState_t *ps);
+qboolean ClientHasMaxLives(gclient_t *client);
+void GibClient(gentity_t *target, gentity_t *attacker);
+void reinforce(gentity_t *ent);
 
 //
 // g_svcmds.c
@@ -1297,7 +1298,7 @@ typedef struct {
 extern team_info teamInfo[TEAM_NUM_TEAMS];
 void G_swapTeamLocks( void );
 void handleTeamLocks( int team );
-int Team_CountLiveTeammates();
+int Team_CountLiveTeammates(gentity_t *ent);
 
 //
 // g_mem.c
