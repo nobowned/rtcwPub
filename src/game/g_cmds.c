@@ -3870,13 +3870,13 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 		return;
 	}
 
-	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] < 0) {
-		CP("cp \"You're out of lives to give.\n\"");
+	// There are too many abusable edge cases if we allow clients to give their x0 life.
+	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0) {
+		CP("cp \"You can't give your last life.\n\"");
 		return;
 	}
 
-	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0 &&
-		ent->client->ps.pm_flags & PMF_LIMBO) {
+	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] < 0) {
 		CP("cp \"You're out of lives to give.\n\"");
 		return;
 	}
@@ -3929,16 +3929,6 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 			return;
 		}
 	}
-	
-	if (ent->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0) {
-		GibClient(ent, NULL);
-		AP(va("chat \"%s^7 gave %s last life to %s^7!\n\"", ent->client->pers.netname, ent->client->sess.gender == 0 ? "his" : "her", target_entity->client->pers.netname));
-	}
-	else {
-		AP(va("chat \"%s^7 gave a life to %s^7!\n\"", ent->client->pers.netname, target_entity->client->pers.netname));
-		ent->client->ps.persistant[PERS_RESPAWNS_LEFT]--;
-		ent->client->saved_persistant[PERS_RESPAWNS_LEFT]--;
-	}
 
 	if (target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT] == 0 &&
 		target_entity->client->ps.pm_flags & PMF_LIMBO) {
@@ -3948,6 +3938,9 @@ void Cmd_GiveLife_f(gentity_t *ent) {
 		target_entity->client->ps.persistant[PERS_RESPAWNS_LEFT]++;
 	}
 
+	AP(va("chat \"%s^7 gave a life to %s^7!\n\"", ent->client->pers.netname, target_entity->client->pers.netname));
+	ent->client->ps.persistant[PERS_RESPAWNS_LEFT]--;
+	ent->client->saved_persistant[PERS_RESPAWNS_LEFT]--;
 	ent->client->pers.give_life_revives -= g_giveLifeRequiredRevives.integer;
 	ent->client->pers.give_life_damage -= g_giveLifeRequiredDamage.integer;
 }
