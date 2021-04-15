@@ -648,9 +648,23 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	// we want the server to reference the mp_bin pk3 that the client is expected to load from
 	SV_TouchCGameDLL();
 
-	p = FS_ReferencedPakChecksums(sv_forcedPk3Downloads->string);
+	char *forcedPk3Downloads = sv_forcedPk3Downloads->string;
+	if (forcedPk3Downloads && forcedPk3Downloads[0]) {
+		// remove all .pk3 extensions from the forced string.
+		char *string_end = forcedPk3Downloads + strlen(forcedPk3Downloads);
+		char *extension = forcedPk3Downloads;
+		while ((extension = strchr(extension, '.')) != NULL) {
+			char *extension_end = extension;
+			while (*extension_end && *extension_end != ' ') extension_end++;
+			memmove(extension, extension_end, string_end - extension);
+		}
+		// tokenize
+		Cmd_TokenizeString(forcedPk3Downloads);
+	}
+
+	p = FS_ReferencedPakChecksums(forcedPk3Downloads);
 	Cvar_Set( "sv_referencedPaks", p );
-	p = FS_ReferencedPakNames(sv_forcedPk3Downloads->string);
+	p = FS_ReferencedPakNames(forcedPk3Downloads);
 	Cvar_Set( "sv_referencedPakNames", p );
 
 	// save systeminfo and serverinfo strings

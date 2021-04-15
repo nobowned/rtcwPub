@@ -3238,6 +3238,7 @@ The server will send this to the clients so they can check which files should be
 const char *FS_ReferencedPakChecksums( char *forced ) {
 	static char info[BIG_INFO_STRING];
 	searchpath_t *search;
+	int i;
 
 	info[0] = 0;
 
@@ -3245,7 +3246,16 @@ const char *FS_ReferencedPakChecksums( char *forced ) {
 		// is the element a pak file?
 		if ( search->pack ) {
 			if ( search->pack->referenced || Q_stricmpn( search->pack->pakGamename, BASEGAME, strlen( BASEGAME ) ) ) {
-				Q_strcat( info, sizeof( info ), va( "%i ", search->pack->checksum ) );
+				if (!FS_idPak(va("%s/%s", search->pack->pakGamename, search->pack->pakBasename), "main")) {
+					Q_strcat(info, sizeof(info), va("%i ", search->pack->checksum));
+				}
+			} else {
+				for (i = 0; i < Cmd_Argc(); ++i) {
+					if (strcmp(Cmd_Argv(i), search->pack->pakBasename) == 0) {
+						Q_strcat(info, sizeof(info), va("%i ", search->pack->checksum));
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -3264,6 +3274,7 @@ The server will send this to the clients so they can check which files should be
 const char *FS_ReferencedPakNames( char *forced ) {
 	static char info[BIG_INFO_STRING];
 	searchpath_t    *search;
+	int i;
 
 	info[0] = 0;
 
@@ -3276,9 +3287,20 @@ const char *FS_ReferencedPakNames( char *forced ) {
 				Q_strcat( info, sizeof( info ), " " );
 			}
 			if ( search->pack->referenced || Q_stricmpn( search->pack->pakGamename, BASEGAME, strlen( BASEGAME ) ) ) {
-				Q_strcat( info, sizeof( info ), search->pack->pakGamename );
-				Q_strcat( info, sizeof( info ), "/" );
-				Q_strcat( info, sizeof( info ), search->pack->pakBasename );
+				if (!FS_idPak(va("%s/%s", search->pack->pakGamename, search->pack->pakBasename), "main")) {
+					Q_strcat( info, sizeof( info ), search->pack->pakGamename );
+					Q_strcat( info, sizeof( info ), "/" );
+					Q_strcat( info, sizeof( info ), search->pack->pakBasename );
+				}
+			} else {
+				for (i = 0; i < Cmd_Argc(); ++i) {
+					if (strcmp(Cmd_Argv(i), search->pack->pakBasename) == 0) {
+						Q_strcat(info, sizeof(info), search->pack->pakGamename);
+						Q_strcat(info, sizeof(info), "/");
+						Q_strcat(info, sizeof(info), search->pack->pakBasename);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -3597,24 +3619,12 @@ const char *FS_ReferencedPakChecksums( char *forced ) {
 
 	info[0] = 0;
 
-	// remove all .pk3 extensions from the forced string.
-	if (forced && forced[0]) {
-		char *string_end = forced + strlen(forced);
-		char *extension = forced;
-		while ((extension = strchr(extension, '.')) != NULL) {
-			char *extension_end = extension;
-			while (*extension_end && *extension_end != ' ') extension_end++;
-			memmove(extension, extension_end, string_end - extension);
-		}
-	}
-
-	Cmd_TokenizeString(forced);
-
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
 		if ( search->pack ) {
 			if ( search->pack->referenced ) {
-				if ( strcmp( search->pack->pakBasename, "pak0" ) ) {
+				if ( strcmp( search->pack->pakBasename, "pak0" ) && 
+					!FS_idPak(va("%s/%s", search->pack->pakGamename, search->pack->pakBasename), "main") ) {
 					// this is not the light pk3
 					Q_strcat( info, sizeof( info ), va( "%i ", search->pack->checksum ) );
 				}
@@ -3650,9 +3660,6 @@ const char *FS_ReferencedPakNames( char *forced ) {
 
 	info[0] = 0;
 
-	// NOTE(nobo): No need to clear extensions and then tokenize the forced string.
-	// FS_ReferencedPakChecksums already took care of it.
-
 	// we want to return ALL pk3's from the fs_game path
 	// and referenced one's from baseq3
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
@@ -3662,7 +3669,8 @@ const char *FS_ReferencedPakNames( char *forced ) {
 				Q_strcat( info, sizeof( info ), " " );
 			}
 			if ( search->pack->referenced ) {
-				if ( strcmp( search->pack->pakBasename, "pak0" ) ) {
+				if ( strcmp( search->pack->pakBasename, "pak0" ) &&
+					 !FS_idPak(va("%s/%s", search->pack->pakGamename, search->pack->pakBasename), "main") ) {
 					// this is not the light pk3
 					Q_strcat( info, sizeof( info ), search->pack->pakGamename );
 					Q_strcat( info, sizeof( info ), "/" );
