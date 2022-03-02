@@ -1,0 +1,140 @@
+//
+//Brush Scripting
+//Map: mp_keep
+//Last edited by: agent
+//KEEP DM
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription			"The Axis are hiding away a Sacred Obelisk with supernatural powers inside a Fortified Keep. The Allies must capture the Obelisk before its power can be unleashed!"
+		wm_axis_respawntime		30
+		wm_allied_respawntime		30
+
+		wm_set_round_timelimit		10
+
+		wm_number_of_objectives		3
+
+		// Axis is defending
+		wm_set_defending_team	0
+
+		// Set objective #1 properties
+
+		// Nazi's control objective #1 at the start:  0 == AXIS, 1 == ALLIED
+		wm_set_objective_status		1	0
+		wm_set_objective_status		2	0
+		wm_set_objective_status		3	0
+
+		wm_objective_allied_desc	1	"Primary Objective:**Make your way to the roof, where the Sacred Obelisk awaits."
+		wm_objective_allied_desc	2	"Primary Objective:**Steal the Sacred Obelisk from within the Keep!"
+		wm_objective_allied_desc	3	"Primary Objective:**Escape with the Sacred Obelisk to the waiting Allied truck!"
+
+		wm_objective_axis_desc		1	"Primary Objective:**Do not let the Allies gain access to the roof!"
+		wm_objective_axis_desc		2	"Primary Objective:**Prevent the Allies from stealing the Sacred Obelisk."
+		wm_objective_axis_desc		3	"Primary Objective:**Stop the Allies from escaping to the waiting Truck!"
+
+		wm_objective_short_allied_desc	1	"Breach the Roof"
+		wm_objective_short_allied_desc	2	"Steal the Sacred Obelisk"
+		wm_objective_short_allied_desc	3	"Escape with the Sacred Obelisk"
+
+		wm_objective_short_axis_desc	1	"Defend the Roof"
+		wm_objective_short_axis_desc	2	"Protect the Sacred Obelisk"
+		wm_objective_short_axis_desc	3	"Prevent the Allies from escaping"
+
+		wm_objective_image			1	"gfx/2d/mp_objectives/keep_obj_1.tga"
+		wm_objective_image			2	"gfx/2d/mp_objectives/keep_obj_2.tga"
+		wm_objective_image			3	"gfx/2d/mp_objectives/keep_obj_3.tga"
+		wm_overview_image			"video/mp_keep.roq"
+
+		// If the round timer expires, the Nazis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// Accum #1 will be the state of objective number one
+		// Accum #2 will be the state of objective number one
+		accum 1 set 0
+		accum 2 set 0
+	}
+
+	trigger objective3
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		3	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 2 set 1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allied team captured the Sacred Obelisk!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame
+	}
+
+	trigger objective1
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		1	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies have breached the roof!"
+	}
+
+	trigger checkgame
+	{
+		accum 2 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// End the round
+		wm_endround
+	}
+
+	trigger axis_object_stolen
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied have stolen the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	1
+	}
+
+	trigger axis_object_returned
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis have returned the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	0
+	}
+
+}
+
+allied_obj1 //The Obelisk return trigger
+{
+	spawn
+	{
+		remove
+	}
+
+	death
+	{
+		trigger game_manager objective3
+	}
+}
+
+roof_gate // Roof breached!
+{
+	spawn
+	{
+		remove
+	}
+
+	death
+	{
+		trigger game_manager objective1
+	}
+}

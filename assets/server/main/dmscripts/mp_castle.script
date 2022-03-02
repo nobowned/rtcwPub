@@ -1,0 +1,178 @@
+//
+//Brush Scripting
+//Map: mp_castle
+//Last edited by: Agent - Sorry server runners, cant get rid of the gates :(
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription		"Allied forces are attempting to infiltrate the Axis-occupied castle and escape with the Sacred Obelisk."
+
+		// Set the respawn times
+
+		wm_allied_respawntime		30
+		wm_axis_respawntime		30
+
+		wm_set_round_timelimit		15
+
+		// Set the number of objectives for the map
+
+		wm_number_of_objectives		5
+
+		// Axis control all objectives at the start (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		1	0
+		wm_set_objective_status		2	0
+		wm_set_objective_status		3	0
+		wm_set_objective_status		4	0
+		wm_set_objective_status		5	0
+		wm_objective_allied_desc	1	"Primary Objective:**Blow open the Coffin in the Northeast Courtyard with dynamite."
+		wm_objective_allied_desc	2	"Primary Objective:**Steal the Sacred Obelisk, from inside the Coffin."
+		wm_objective_allied_desc	3	"Primary Objective:**Escape with the Obelisk through the Escape Tunnel in the Southern Crypts."
+		wm_objective_allied_desc	4	"Secondary Objective:**Destroy the West Gate for fast access to the Courtyard."
+		wm_objective_allied_desc	5	"Secondary Objective:**Destroy the Hallway Gate for faster access to the Courtyard."
+		wm_objective_axis_desc		1	"Primary Objective:**Prevent the Allies from destroying the Coffin in the Northeast Courtyard."
+		wm_objective_axis_desc		2	"Primary Objective:**Prevent the Allies from stealing the Sacred Obelisk."
+		wm_objective_axis_desc		3	"Primary Objective:**Stop the Allies from escaping, through the tunnel in the Southern Crypts."
+		wm_objective_axis_desc		4	"Secondary Objective:**Do not let the Allies advance."
+		wm_objective_axis_desc		5	"Secondary Objective:**Do not let the Allies advance."
+		wm_overview_image			"video/mp_castle.roq"
+		wm_objective_image			1	"gfx/2d/mp_objectives/castle_obj_1.tga"
+		wm_objective_image			2	"gfx/2d/mp_objectives/castle_obj_2.tga"
+		wm_objective_image			3	"gfx/2d/mp_objectives/castle_obj_3.tga"
+		wm_objective_image			4	"gfx/2d/mp_objectives/castle_obj_5.tga"
+		wm_objective_image			5	"gfx/2d/mp_objectives/castle_obj_4.tga"
+
+		// SHORT DESCRIPTIONS
+
+		wm_objective_short_axis_desc	1	"Defend the Coffin"
+		wm_objective_short_axis_desc	2	"Defend the Obelisk"
+		wm_objective_short_axis_desc	3	"Return the Obelisk"
+		wm_objective_short_axis_desc	4	"Defend the West Gate"
+		wm_objective_short_axis_desc	5	"Defend the Hallway Gate"
+
+		wm_objective_short_allied_desc	1	"Destroy the Coffin"
+		wm_objective_short_allied_desc	2	"Steal the Obelisk"
+		wm_objective_short_allied_desc	3	"Escape with the Obelisk"
+		wm_objective_short_allied_desc	4	"Destroy the West Gate"
+		wm_objective_short_allied_desc	5	"Destroy the Hallway Gate"
+
+		// Set Defending Team for SW Mode
+
+		wm_set_defending_team	0
+
+		// If the round timer expires, the Axis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// Accum #1 will be the state of objective number one
+		accum 1 set 0
+		// Accum #2 is set after either wall is breached, so that the sirens are set only once
+		accum 2 set 0
+	}
+
+	trigger objective1
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		1	1
+
+		// UI pop-up to alert players
+		wm_announce	"The Coffin has been destroyed!"
+
+
+	}
+
+	trigger objective2
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		3	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 1
+
+		// UI pop-up to alert players
+		wm_announce	"The Allies have escaped with the Obelisk!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame
+	}
+
+	trigger objective4
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		4	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies have breached West Gate!"
+	}
+
+	trigger objective5
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		5	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies have breached the Hallway Gate!"
+	}
+
+	trigger axis_object_stolen
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied have stolen the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	1
+	}
+
+	trigger axis_object_returned
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis have returned the documents (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		2	0
+	}
+
+	trigger checkgame
+	{
+		accum 1 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		// End the round
+		wm_endround
+	}
+}
+
+
+allied_obj1 //the coffin being destroyed
+{
+}
+
+allied_obj2 //the allies escaping with the obelisk
+{
+	spawn
+	{
+		remove
+	}
+}
+
+west_gate01 //West Gate breached.
+{
+	spawn
+	{
+		remove
+	}
+}
+
+hall_gate01 //Hall Gate breached.
+{
+	spawn
+	{
+		remove
+	}
+}
