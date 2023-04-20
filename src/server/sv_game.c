@@ -640,12 +640,6 @@ int SV_GameSystemCalls( int *args ) {
 	case G_GLOBAL_STATS_RECONNECT:
 		SV_GlobalStatsReconnect();
 		return 0;
-	case G_APPEND_ENTITY_STRING:
-		SV_AppendEntityString(VMA(1));
-		return 0;
-	case G_FREE_ENTITY_STRING:
-		SV_FreeEntityString();
-		return 0;
 	case G_GET_CLIENT_IP:
 		SV_GetClientIp(args[1], VMA(2), args[3]);
 		return 0;
@@ -1126,7 +1120,6 @@ void SV_ShutdownGameProgs( void ) {
 		return;
 	}
 	VM_Call( gvm, GAME_SHUTDOWN, qfalse );
-	SV_FreeEntityString();
 	VM_Free( gvm );
 	gvm = NULL;
 }
@@ -1267,38 +1260,3 @@ qboolean SV_GetTag( sharedEntity_t *ent, clientAnimationInfo_t *animInfo, char* 
 #endif
 }
 
-/*
-====================
-SV_AppendEntityString
-
-Reads in entity string from file and appends it to the current entity string
-====================
-*/
-void SV_AppendEntityString(char *fileName)
-{
-	int *buf = NULL;
-	int length = FS_ReadFile(fileName, (void **)&buf);
-
-	if (buf)
-	{
-		CM_AppendToEntityString((char *)buf, length);
-		sv.entityParsePoint = CM_EntityString();
-		FS_FreeFile(buf);
-	}
-}
-
-/*
-===============
-SV_FreeEntityString
-
-Z_Frees entity string on map unload
-===============
-*/
-void SV_FreeEntityString()
-{
-	char *entityString = CM_EntityString();
-	if (entityString)
-	{
-		Z_Free(entityString);
-	}
-}

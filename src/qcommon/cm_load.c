@@ -484,15 +484,66 @@ void CMod_LoadEntityString(const char *path, lump_t *l) {
 
 /*
 =================
+sswolf - replace mod method with jk's.
+Allows full overwrite and is much more compact.
+Note: takes ffa into account.
+
+CMod_LoadCustomEntityString
+=================
+*/
+qboolean CMod_LoadCustomEntityString(const char* name) {
+	fileHandle_t file;
+	int entFileLen = 0;
+	char* filename;
+	char noext[MAX_QPATH];
+
+	COM_StripExtension(name, noext);
+
+	if (Cvar_VariableIntegerValue("g_ffa"))
+	{
+		filename = va("%s_ffa.spawns", noext);
+	}
+	else
+	{
+		filename = va("%s.spawns", noext);
+	}
+
+	entFileLen = FS_FOpenFileRead(filename, &file, qtrue);
+
+	if (file && entFileLen > 0)
+	{
+		cm.entityString = (char*)Hunk_Alloc(entFileLen + 1, h_high);
+		cm.numEntityChars = entFileLen + 1;
+		FS_Read(cm.entityString, entFileLen, file);
+		FS_FCloseFile(file);
+		cm.entityString[entFileLen] = '\0';
+		Com_Printf(va("rtcwPub: Loaded entities from %s\n", filename));
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+/*
+=================
 CMod_LoadEntityString
 =================
 */
-void CMod_LoadEntityString(lump_t *l) {
-	cm.entityString = Z_Malloc(l->filelen);
-	//cm.entityString = Hunk_Alloc(l->filelen, h_high);
+void CMod_LoadEntityString(lump_t* l, const char* name) {
+
+	// sswolf - new way above
+	if (CMod_LoadCustomEntityString(name))
+	{
+		return;
+	}
+
+	Com_Printf(va("rtcwPub: Loaded entities from %s\n", name));
+	//cm.entityString = Z_Malloc(l->filelen);
+	cm.entityString = Hunk_Alloc(l->filelen, h_high);
 	cm.numEntityChars = l->filelen;
 	memcpy(cm.entityString, cmod_base + l->fileofs, l->filelen);
 }
+
 
 /*
 =================
@@ -706,8 +757,8 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	CMod_LoadBrushes( &header.lumps[LUMP_BRUSHES] );
 	CMod_LoadSubmodels( &header.lumps[LUMP_MODELS] );
 	CMod_LoadNodes( &header.lumps[LUMP_NODES] );
-	//CMod_LoadEntityString( name, &header.lumps[LUMP_ENTITIES] ); - Nobo's old way
-	CMod_LoadEntityString( &header.lumps[LUMP_ENTITIES] );
+	CMod_LoadEntityString( &header.lumps[LUMP_ENTITIES], name ); // - Nobo's old way // sswolf - back to it
+	//CMod_LoadEntityString( &header.lumps[LUMP_ENTITIES] );
 	CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );
 	CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS] );
 
@@ -781,21 +832,6 @@ int     CM_NumInlineModels( void ) {
 
 char    *CM_EntityString( void ) {
 	return cm.entityString;
-}
-
-void	CM_AppendToEntityString(char *data, int dataLength) {
-	int newSize = cm.numEntityChars + dataLength;
-	char *newEntityString = Z_Malloc(newSize);
-
-	if (cm.entityString)
-	{
-		Q_strncpyz(newEntityString, cm.entityString, newSize);
-		Z_Free(cm.entityString);
-	}
-
-	Q_strcat(newEntityString, newSize, data);
-	cm.entityString = newEntityString;
-	cm.numEntityChars = newSize;
 }
 
 int     CM_LeafCluster( int leafnum ) {

@@ -187,7 +187,6 @@ vmCvar_t	g_noHardcodedCensor;	// Don't use hard coded censor..
 vmCvar_t	g_shortcuts;			// Enable shortcuts
 vmCvar_t	g_allowPMs;				// Allow private messages
 vmCvar_t	g_serverMessage;		// Shows a center print each time when player switches teams.
-vmCvar_t	g_customSpawns;			// Spawn your own shit
 vmCvar_t	g_teamSwitchTime;		// Time in seconds before player can switch teams
 vmCvar_t	g_readySystem;			// Enable/disable the /ready system for players
 vmCvar_t	g_readyPlayers;			// The amount of total players required to /ready before the round will start.
@@ -535,7 +534,7 @@ cvarTable_t		gameCvarTable[] = {
 	{ &g_alliedASdelayFFE, "g_alliedASdelayFFE", "0", CVAR_ARCHIVE, 0, qfalse },
 	{ &g_serverMessage, "g_serverMessage", "", CVAR_ARCHIVE, 0, qfalse },
 	{ &g_unstuckRevive, "g_unstuckRevive", "0", CVAR_ARCHIVE, 0, qfalse },
-	{ &g_customSpawns, "g_customSpawns", "0", CVAR_ARCHIVE, 0, qfalse },
+	//{ &g_customSpawns, "g_customSpawns", "0", CVAR_ARCHIVE, 0, qfalse }, // sswolf - Nobo's old way replaced by jk's
 	{ &g_teamSwitchTime, "g_teamSwitchTime", "2", 0, 0, qfalse },
 	{ &g_readySystem, "g_readySystem", "0", 0, 0, qfalse },
 	{ &g_readyPlayers, "g_readySystem", "0", 0, 0, qfalse },
@@ -1719,8 +1718,7 @@ void G_InitGame(int levelTime, int randomSeed, int restart) {
 
 	needsMapName =
 		g_mapConfigs.integer ||
-		g_ffa.integer ||
-		g_customSpawns.integer;
+		g_ffa.integer;
 
 	G_InitMemory();
 
@@ -1830,20 +1828,6 @@ void G_InitGame(int levelTime, int randomSeed, int restart) {
 	if (needsMapName)
 	{
 		trap_Cvar_VariableStringBuffer("mapname", mapName, sizeof(mapName));
-	}
-
-	if (!restart)
-	{
-		// NOTE(nobo): Append to entity string before it's parsed by G_SpawnEntitiesFromString
-		if (g_customSpawns.integer)
-		{
-			trap_AppendEntityString(va("maps/%s.spawns", mapName));
-		}
-		// NOTE(nobo): ffa has it's own special spawns that we don't want conflicting with "customSpawns"
-		if (g_ffa.integer)
-		{
-			trap_AppendEntityString(va("maps/%s_ffa.spawns", mapName));
-		}
 	}
 
 	// parse the key/value pairs and spawn gentities

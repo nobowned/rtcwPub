@@ -238,14 +238,6 @@ void trap_GlobalStatsReconnect(void) {
 	syscall(G_GLOBAL_STATS_RECONNECT);
 }
 
-void trap_AppendEntityString(char *fileName) {
-	syscall(G_APPEND_ENTITY_STRING, fileName);
-}
-
-void trap_FreeEntityString() {
-	syscall(G_FREE_ENTITY_STRING);
-}
-
 void trap_GetClientIp(int clientNum, char *ip_out, int ip_out_length) {
 	syscall(G_GET_CLIENT_IP, clientNum, ip_out, ip_out_length);
 }
