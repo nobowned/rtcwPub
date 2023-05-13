@@ -145,7 +145,6 @@ App_Data/*.ldf
 *_mp.cfg
 *.bsp
 *.script
-*.spawns
 
 demos/
 windows-server/

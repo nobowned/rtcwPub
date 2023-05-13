@@ -439,8 +439,6 @@ void        SV_ShutdownGameProgs( void );
 void        SV_RestartGameProgs( void );
 qboolean    SV_inPVS( const vec3_t p1, const vec3_t p2 );
 qboolean SV_GetTag( sharedEntity_t *ent, clientAnimationInfo_t *animInfo, char* tagname, orientation_t *or );
-void SV_AppendEntityString(char *fileName);
-void SV_FreeEntityString();
 void SV_LogToFile(char* q_path, char* message);
 void SV_GetClientIp(int num, char* ip_out, int ip_out_length);
 
