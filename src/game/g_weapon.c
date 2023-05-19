@@ -334,7 +334,6 @@ void Weapon_Syringe(gentity_t *ent) {
 
 				// L0 - antilag
 				G_ResetTrail(traceEnt);
-				traceEnt->client->saved.leveltime = 0;
 
 				memcpy(traceEnt->client->ps.ammo, ammo, sizeof(int)*MAX_WEAPONS);
 				memcpy(traceEnt->client->ps.ammoclip, ammoclip, sizeof(int)*MAX_WEAPONS);

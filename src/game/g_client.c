@@ -665,7 +665,6 @@ void respawn( gentity_t *ent ) {
 
 	// L0 - antilag
 	G_ResetTrail(ent);
-	ent->client->saved.leveltime = 0;
 }
 
 // NERVE - SMF - merge from team arena
@@ -2106,7 +2105,6 @@ void ClientBegin( int clientNum ) {
 
 // L0 - antilag
 	G_ResetTrail(ent);
-	ent->client->saved.leveltime = 0;
 // End
 
 	// Xian -- Changed below for team independant maxlives
