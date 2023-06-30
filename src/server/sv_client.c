@@ -1283,6 +1283,7 @@ void PrintClientVersion(client_t *to, int version)
 	int matchCount = 0;
 	client_t *cl;
 	int matches[MAX_CLIENTS];
+	char clientinfo[MAX_INFO_STRING];
 
 	for (i = 0; i < sv_maxclients->integer; ++i)
 	{
@@ -1290,6 +1291,12 @@ void PrintClientVersion(client_t *to, int version)
 
 		if (cl->state >= CS_CONNECTED && cl->protocol == version)
 		{
+			SV_GetUserinfo(i, clientinfo, sizeof(clientinfo));
+			if (Q_stricmp(Info_ValueForKey(clientinfo, "cl_hidden"), "1") == 0)
+			{
+				continue;
+			}
+
 			matches[matchCount++] = i;
 		}
 	}
@@ -1314,7 +1321,7 @@ void SV_PrintClientVersions_f(client_t *cl)
 {
 	PrintClientVersion(cl, PROTOCOL_VERSION_1_0);
 	PrintClientVersion(cl, PROTOCOL_VERSION_1_4);
-	SV_SendServerCommand(NULL, "print \"\n\"");
+	SV_SendServerCommand(cl, "print \"\n\"");
 }
 
 typedef struct {
