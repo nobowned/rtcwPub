@@ -1517,7 +1517,9 @@ static void Cmd_SayAll_f(gentity_t *ent) {
 }
 
 static void Cmd_SayTeam_f(gentity_t *ent) {
-	if (g_ffa.integer) {
+
+	if (g_ffa.integer && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
+	{
 		Cmd_SayAll_f(ent);
 		return;
 	}
@@ -1741,7 +1743,8 @@ static void Cmd_VoiceAll_f(gentity_t *ent) {
 }
 
 static void Cmd_VoiceTeam_f(gentity_t *ent) {
-	if (g_ffa.integer)
+
+	if (g_ffa.integer && ent->client->sess.sessionTeam != TEAM_SPECTATOR)
 	{
 		Cmd_VoiceAll_f(ent);
 		return;

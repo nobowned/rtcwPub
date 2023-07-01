@@ -2039,8 +2039,7 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 			return;
 		}
 
-		if (g_ffa.integer &&
-			ent->client->ps.pm_flags & PMF_LIMBO)
+		if ((g_ffa.integer && ent->client->ps.pm_flags & PMF_LIMBO) && (ent->client->sess.sessionTeam != TEAM_SPECTATOR))
 		{
 			StopFollowing(ent);
 			return;
