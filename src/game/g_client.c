@@ -1933,14 +1933,17 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	// L0 - disallowed names
 	if (g_disallowedNames.string[0]) {
 		char censoredName[MAX_NETNAME];
-		char *line;
+		char* line;
+		char truncatedName[MAX_NETNAME];
 
-		value = Info_ValueForKey(userinfo, "name");
-		SanitizeString((char *)value, censoredName, qtrue);
+		memset(truncatedName, 0, sizeof(truncatedName));
+
+		Q_strncpyz(truncatedName, Info_ValueForKey(userinfo, "name"), sizeof(truncatedName));
+		SanitizeString((char*)truncatedName, censoredName, qtrue);
 		if (G_CensorText(censoredName, &censorNamesDictionary)) {
 			Info_SetValueForKey(userinfo, "name", censoredName);
 			trap_SetUserinfo(clientNum, userinfo);
-			line = va("\n^7Name ^3%s ^7is not allowed^1!", value);
+			line = va("\n^7Name ^3%s ^7is not allowed^1!", truncatedName);
 			return va("%s\n", line);
 		}
 	}
